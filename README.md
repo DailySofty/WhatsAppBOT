@@ -1,7 +1,7 @@
 ![stars][stars] ![watchers][watchers] ![forks][forks]
 <br>
 
-# [WhatsAappBOT](https://github.com/DailySofty/WhatsAappBOT/)
+# [WhatsAppBOT](https://github.com/DailySofty/WhatsAppBOT/)
 A manager for WhatsApp groups.
 ---
 
@@ -90,9 +90,9 @@ Simply run `node bot` and follow the instructions!
 HOW TO USE TEXT
 </details>
 
-[forks]: https://img.shields.io/github/forks/DailySofty/WhatsAappBOT
-[stars]: https://img.shields.io/github/stars/DailySofty/WhatsAappBOT
-[watchers]: https://img.shields.io/github/watchers/DailySofty/WhatsAappBOT
-[issues]: https://badgen.net/github/issues/DailySofty/WhatsAappBOT
-[pull_requests]: https://badgen.net/github/prs/DailySofty/WhatsAappBOT
-[branches]: https://badgen.net/github/branches/DailySofty/WhatsAappBOT
+[forks]: https://img.shields.io/github/forks/DailySofty/WhatsAppBOT
+[stars]: https://img.shields.io/github/stars/DailySofty/WhatsAppBOT
+[watchers]: https://img.shields.io/github/watchers/DailySofty/WhatsAppBOT
+[issues]: https://badgen.net/github/issues/DailySofty/WhatsAppBOT
+[pull_requests]: https://badgen.net/github/prs/DailySofty/WhatsAppBOT
+[branches]: https://badgen.net/github/branches/DailySofty/WhatsAppBOT
