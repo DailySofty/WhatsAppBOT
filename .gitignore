@@ -1,3 +1,6 @@
+.wwebjs_auth/
+temp.js
+
 # Logs
 logs
 *.log
