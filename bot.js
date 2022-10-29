@@ -1,13 +1,16 @@
+// const fs = require('fs');
+
 const qrcode = require('qrcode-terminal');
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 
-const client = new Client({
-  authStrategy: new LocalAuth()
-});
+console.log('\nStarting...');
 
-client.on('loading_screen', (percent, message) => {
-  console.log('[loading_screen] ', percent, message);
+const SESSION_FILE_PATH = '/session.json';
+
+const client = new Client({
+  authStrategy: new LocalAuth(),
+  puppeteer: { headless: true }
 });
 
 client.on('qr', qr => {
@@ -15,7 +18,18 @@ client.on('qr', qr => {
   qrcode.generate(qr, { small: true });
 });
 
-client.on('authenticated', () => {
+client.on('loading_screen', (percent, message) => {
+  console.log(`[loading_screen] ${percent}%`, message);
+});
+
+client.on('authenticated', (session) => {
+  // sessionData = session;
+  // fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
+  //   if (err) {
+  //     console.error(err);
+  //   }
+  // });
+
   console.log('[authenticated] client is authenticated!');
 });
 
@@ -25,6 +39,28 @@ client.on('auth_failure', error => {
 
 client.on('ready', () => {
   console.log('[ready] client is ready!');
+});
+
+client.on('group_join', (notification) => {
+  console.log('[group_join]', notification);
+  notification.reply('User joined.');
+});
+
+client.on('group_leave', (notification) => {
+  console.log('[group_leave]', notification);
+  notification.reply('User left.');
+});
+
+client.on('group_update', (notification) => {
+  console.log('[group_update]', notification);
+});
+
+client.on('change_state', state => {
+  console.log('[change_state]', state);
+});
+
+client.on('disconnected', (reason) => {
+  console.log('[disconnected] client disconnected', reason);
 });
 
 client.on('message', async message => {
