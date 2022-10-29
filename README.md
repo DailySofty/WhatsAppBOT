@@ -11,6 +11,7 @@ A manager for WhatsApp groups.
 ---
 <details>
     <summary>:green_circle: PTBR</summary>
+    <br>
 
 _Descrição do projeto_
         <details>
@@ -51,7 +52,8 @@ TEXTO COMO USAR
 </details>
 
 <details>
-<summary>:large_blue_circle: ENG</summary>
+    <summary>:large_blue_circle: ENG</summary>
+    <br>
 
 _Project Description_
     <details>
