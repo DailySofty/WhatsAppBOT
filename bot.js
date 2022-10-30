@@ -1,12 +1,35 @@
-// const fs = require('fs');
-
 const qrcode = require('qrcode-terminal');
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 
-console.log('\n[bot] starting...');
+const fs = require('fs');
 
-// const SESSION_FILE_PATH = '/session.json';
+let data = {};
+
+fs.readFile('./data.json', 'utf8', (err, jsonString) => {
+  if (err) {
+    console.log("[data] error reading file from disk:", err);
+    updateData(data);
+
+    return;
+  }
+  try {
+    data = JSON.parse(jsonString);
+    console.log("[data] data loaded from disk:", data);
+  } catch (err) {
+    console.log('[data] error parsing JSON string:', err);
+  }
+});
+
+function updateData(newData) {
+  fs.writeFile('./data.json', JSON.stringify(newData), err => {
+    if (err) {
+      console.log('[updateData] error writing file', err);
+    } else {
+      console.log('[updateData] successfully wrote file', newData);
+    }
+  });
+}
 
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -23,13 +46,6 @@ client.on('loading_screen', (percent, message) => {
 });
 
 client.on('authenticated', (session) => {
-  // sessionData = session;
-  // fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-  //   if (err) {
-  //     console.error(err);
-  //   }
-  // });
-
   console.log('[authenticated] client is authenticated!');
 });
 
@@ -428,4 +444,14 @@ client.on('message', async message => {
   }
 });
 
+console.log('\n[bot] starting...');
 client.initialize();
+
+process.on('SIGINT', () => { exit(); });  // CTRL+C
+process.on('SIGQUIT', () => { exit(); }); // Keyboard quit
+process.on('SIGTERM', () => { exit(); }); // `kill` command
+
+function exit() {
+  client.destroy();
+  console.log('[bot] finished.');
+}
