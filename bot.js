@@ -4,7 +4,7 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 
 const fs = require('fs');
 
-let data = {};
+let data = [];
 
 fs.readFile('./data.json', 'utf8', (err, jsonString) => {
   if (err) {
@@ -26,7 +26,7 @@ function updateData(newData) {
     if (err) {
       console.log('[updateData] error writing file', err);
     } else {
-      console.log('[updateData] successfully wrote file', newData);
+      console.log('[updateData] successfully wrote file');
     }
   });
 }
@@ -57,18 +57,75 @@ client.on('ready', () => {
   console.log('[ready] client is ready!');
 });
 
-client.on('group_join', (notification) => {
+client.on('group_join', async (notification) => {
   console.log('[group_join]', notification);
-  notification.reply('User joined.');
+
+  let wasAdded = false;
+  for (const [key, value] of Object.entries(data)) {
+    if (value.chatId === notification.chatId) {
+      wasAdded = true;
+      break;
+    }
+  }
+
+  if (wasAdded == false) {
+    const chat = await notification.getChat();
+
+    if (chat.isGroup) {
+      const newGroup = {
+        name: chat.name,
+        chatId: chat.id._serialized,
+        owner: chat.owner.user,
+        createdAt: chat.createdAt.toString()
+      }
+
+      data.push(newGroup);
+      updateData(data);
+
+      console.log('[group_join] adding group to data', newGroup);
+
+      //TODO welcome message (group invite, commands and instructions)
+      notification.reply('Obrigado por me adicionar.');
+    }
+  } else {
+    notification.reply('Alguem entrou.');
+  }
 });
 
 client.on('group_leave', (notification) => {
   console.log('[group_leave]', notification);
-  notification.reply('User left.');
+  notification.reply('Alguem saiu.');
+
+  if (notification.id.participant == client.info.wid._serialized) {
+    console.log('[group_leave] you were removed');
+    for (const [key, value] of Object.entries(data)) {
+      if (value.chatId === notification.chatId) {
+        console.log('[group_leave] removing group from data', value);
+
+        delete data[key];
+        updateData(data);
+        break;
+      }
+    }
+  }
 });
 
 client.on('group_update', (notification) => {
   console.log('[group_update]', notification);
+
+  // if (notification.type == 'create') {
+  //   const newGroup = {
+  //     name: notification.body,
+  //     chatId: notification.chatId
+  //   }
+
+  //   data.push(newGroup);
+  //   updateData(data);
+
+  //   console.log('[group_update] adding group to data', newGroup);
+
+  //   notification.reply('Obrigado por me adicionar.');
+  // }
 });
 
 client.on('change_state', state => {
@@ -91,40 +148,42 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body.startsWith('!criargrupo ')) {
-    console.log('[message#criargrupo] creating group...');
-    console.log('[message#criargrupo] split', message.body.split(' '));
+  //! OUT OF ORDER
+  // if (message.body.startsWith('!criargrupo ')) {
+  //   console.log('[message#criargrupo] creating group...');
+  //   console.log('[message#criargrupo] split', message.body.split(' '));
 
-    const name = message.body.split(' ')[2];
-    console.log('[message#criargrupo] name', name);
+  //   const name = message.body.split(' ')[2];
+  //   console.log('[message#criargrupo] name', name);
 
-    const participants = [await client.getNumberId(message.body.split(' ')[1]), await client.getNumberId('0077422222222')];
-    console.log('[message#criargrupo] participants', participants);
+  //   const participants = [await client.getNumberId(message.body.split(' ')[1]), await client.getNumberId('0077422222222')];
+  //   console.log('[message#criargrupo] participants', participants);
 
-    await client.createGroup(name, participants);
+  //   await client.createGroup(name, participants);
 
-    console.log('[message#criargrupo] group created');
+  //   console.log('[message#criargrupo] group created');
 
-    return;
-  }
+  //   return;
+  // }
 
-  if (message.body.startsWith('!sendto ')) {
-    console.log('[message#sendto]');
+  //! NOT USED
+  // if (message.body.startsWith('!sendto ')) {
+  //   console.log('[message#sendto]');
 
-    let number = message.body.split(' ')[1];
-    let messageIndex = message.body.indexOf(number) + number.length;
-    let message = message.body.slice(messageIndex, message.body.length);
+  //   let number = message.body.split(' ')[1];
+  //   let messageIndex = message.body.indexOf(number) + number.length;
+  //   let message = message.body.slice(messageIndex, message.body.length);
 
-    number = number.includes('@c.us') ? number : `${number}@c.us`;
+  //   number = number.includes('@c.us') ? number : `${number}@c.us`;
 
-    let chat = await message.getChat();
-    chat.sendSeen();
+  //   let chat = await message.getChat();
+  //   chat.sendSeen();
 
-    client.sendMessage(number, message);
+  //   client.sendMessage(number, message);
 
-    return;
+  //   return;
 
-  }
+  // }
 
   if (message.body.startsWith('!subject ')) {
     console.log('[message#subject]');
@@ -141,13 +200,14 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body.startsWith('!echo ')) {
-    console.log('[message#echo]');
+  //! NOT USED
+  // if (message.body.startsWith('!echo ')) {
+  //   console.log('[message#echo]');
 
-    message.reply(message.body.slice(6));
+  //   message.reply(message.body.slice(6));
 
-    return;
-  }
+  //   return;
+  // }
 
   if (message.body.startsWith('!desc ')) {
     console.log('[message#desc]');
@@ -178,20 +238,21 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body.startsWith('!join ')) {
-    console.log('[message#join]');
+  //! NOT USED
+  // if (message.body.startsWith('!join ')) {
+  //   console.log('[message#join]');
 
-    const inviteCode = message.body.split(' ')[1];
+  //   const inviteCode = message.body.split(' ')[1];
 
-    try {
-      await client.acceptInvite(inviteCode);
-      message.reply('Joined the group!');
-    } catch (e) {
-      message.reply('That invite code seems to be invalid.');
-    }
+  //   try {
+  //     await client.acceptInvite(inviteCode);
+  //     message.reply('Joined the group!');
+  //   } catch (e) {
+  //     message.reply('That invite code seems to be invalid.');
+  //   }
 
-    return;
-  }
+  //   return;
+  // }
 
   if (message.body === '!groupinfo') {
     console.log('[message#groupinfo]');
@@ -283,32 +344,34 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body === '!location') {
-    console.log('[message#location]');
+  //! OUT OF ORDER
+  // if (message.body === '!location') {
+  //   console.log('[message#location]');
 
-    message.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
+  //   message.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
 
-    return;
-  }
+  //   return;
+  // }
 
-  if (message.location) {
-    console.log('[message.location]');
+  // if (message.location) {
+  //   console.log('[message.location]');
 
-    message.reply(message.location);
+  //   message.reply(message.location);
 
-    return;
-  }
+  //   return;
+  // }
 
-  if (message.body.startsWith('!status ')) {
-    console.log('[message#status]');
+  //! NOT USED
+  // if (message.body.startsWith('!status ')) {
+  //   console.log('[message#status]');
 
-    const newStatus = message.body.split(' ')[1];
+  //   const newStatus = message.body.split(' ')[1];
 
-    await client.setStatus(newStatus);
-    message.reply(`Status was updated to *${newStatus}*`);
+  //   await client.setStatus(newStatus);
+  //   message.reply(`Status was updated to *${newStatus}*`);
 
-    return;
-  }
+  //   return;
+  // }
 
   if (message.body === '!mention') {
     console.log('[message#mention]');
@@ -316,7 +379,7 @@ client.on('message', async message => {
     const contact = await message.getContact();
     const chat = await message.getChat();
 
-    chat.sendMessage(`Hi @${contact.number}!`, {
+    chat.sendMessage(`Oi @${contact.number}!`, {
       mentions: [contact]
     });
 
@@ -339,101 +402,110 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body === '!pin') {
-    console.log('[message#pin]');
+  //! NOT USED
+  // if (message.body === '!pin') {
+  //   console.log('[message#pin]');
 
-    const chat = await message.getChat();
+  //   const chat = await message.getChat();
 
-    await chat.pin();
+  //   await chat.pin();
 
-    return;
-  }
+  //   return;
+  // }
 
-  if (message.body === '!archive') {
-    console.log('[message#archive]');
+  //! NOT USED
+  // if (message.body === '!archive') {
+  //   console.log('[message#archive]');
 
-    const chat = await message.getChat();
+  //   const chat = await message.getChat();
 
-    await chat.archive();
+  //   await chat.archive();
 
-    return;
-  }
+  //   return;
+  // }
 
-  if (message.body === '!mute') {
-    console.log('[message#mute]');
+  //! NOT USED
+  // if (message.body === '!mute') {
+  //   console.log('[message#mute]');
 
-    const chat = await message.getChat();
+  //   const chat = await message.getChat();
 
-    const unmuteDate = new Date();
-    unmuteDate.setSeconds(unmuteDate.getSeconds() + 20);
+  //   const unmuteDate = new Date();
+  //   unmuteDate.setSeconds(unmuteDate.getSeconds() + 20);
 
-    await chat.mute(unmuteDate);
+  //   await chat.mute(unmuteDate);
 
-    return;
-  }
+  //   return;
+  // }
 
-  if (message.body === '!typing') {
-    console.log('[message#typing]');
+  //! NOT USED
+  // if (message.body === '!typing') {
+  //   console.log('[message#typing]');
 
-    const chat = await message.getChat();
+  //   const chat = await message.getChat();
 
-    chat.sendStateTyping();
+  //   chat.sendStateTyping();
 
-    return;
-  }
+  //   return;
+  // }
 
-  if (message.body === '!recording') {
-    console.log('[message#recording]');
+  //! NOT USED
+  // if (message.body === '!recording') {
+  //   console.log('[message#recording]');
 
-    const chat = await message.getChat();
+  //   const chat = await message.getChat();
 
-    chat.sendStateRecording();
+  //   chat.sendStateRecording();
 
-    return;
-  }
+  //   return;
+  // }
 
-  if (message.body === '!clearstate') {
-    console.log('[message#clearstate]');
+  //! NOT USED
+  // if (message.body === '!clearstate') {
+  //   console.log('[message#clearstate]');
 
-    const chat = await message.getChat();
+  //   const chat = await message.getChat();
 
-    chat.clearState();
+  //   chat.clearState();
 
-    return;
-  }
+  //   return;
+  // }
 
-  if (message.body === '!jumpto') {
-    console.log('[message#jumpto]');
+  //! NOT USED
+  // if (message.body === '!jumpto') {
+  //   console.log('[message#jumpto]');
 
-    if (message.hasQuotedMsg) {
-      const quotedMsg = await message.getQuotedMessage();
+  //   if (message.hasQuotedMsg) {
+  //     const quotedMsg = await message.getQuotedMessage();
 
-      client.interface.openChatWindowAt(quotedMsg.id._serialized);
-    }
+  //     client.interface.openChatWindowAt(quotedMsg.id._serialized);
+  //   }
 
-    return;
-  }
+  //   return;
+  // }
 
-  if (message.body === '!buttons') {
-    console.log('[message#buttons]');
+  //! OUT OF ORDER
+  // if (message.body === '!buttons') {
+  //   console.log('[message#buttons]');
 
-    let button = new Buttons('Button body', [{ body: 'bt1' }, { body: 'bt2' }, { body: 'bt3' }], 'title', 'footer');
+  //   let button = new Buttons('Button body', [{ body: 'bt1' }, { body: 'bt2' }, { body: 'bt3' }], 'title', 'footer');
 
-    client.sendMessage(message.from, button);
+  //   client.sendMessage(message.from, button);
 
-    return;
-  }
+  //   return;
+  // }
 
-  if (message.body === '!list') {
-    console.log('[message#list]');
+  //! OUT OF ORDER
+  // if (message.body === '!list') {
+  //   console.log('[message#list]');
 
-    let sections = [{ title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }];
-    let list = new List('List body', 'btnText', sections, 'Title', 'footer');
+  //   let sections = [{ title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }];
+  //   let list = new List('List body', 'btnText', sections, 'Title', 'footer');
 
-    client.sendMessage(message.from, list);
+  //   client.sendMessage(message.from, list);
 
-    return;
-  }
+  //   return;
+  // }
 
   if (message.body === '!reaction') {
     console.log('[message#reaction]');
