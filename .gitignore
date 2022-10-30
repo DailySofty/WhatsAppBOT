@@ -1,6 +1,7 @@
 .wwebjs_auth/
-session.json
+# session.json
 temp.js
+data.json
 
 # Logs
 logs
