@@ -85,6 +85,8 @@ client.on('group_join', async (notification) => {
       console.log('[group_join] adding group to data', newGroup);
 
       //TODO welcome message (group invite, commands and instructions)
+      // const invite = await chat.getInviteCode()
+      // notification.reply(`${invite}\nObrigado por me adicionar.`);
       notification.reply('Obrigado por me adicionar.');
     }
   } else {
@@ -102,7 +104,7 @@ client.on('group_leave', (notification) => {
       if (value.chatId === notification.chatId) {
         console.log('[group_leave] removing group from data', value);
 
-        delete data[key];
+        delete data[key]; //TODO remove from array (this is not working properly...leaves an empty object)
         updateData(data);
         break;
       }
@@ -110,22 +112,25 @@ client.on('group_leave', (notification) => {
   }
 });
 
-client.on('group_update', (notification) => {
+client.on('group_update', async (notification) => {
   console.log('[group_update]', notification);
 
-  // if (notification.type == 'create') {
-  //   const newGroup = {
-  //     name: notification.body,
-  //     chatId: notification.chatId
-  //   }
+  for (const [key, value] of Object.entries(data)) {
+    if (value.chatId === notification.chatId) {
+      const chat = await notification.getChat();
 
-  //   data.push(newGroup);
-  //   updateData(data);
+      data[key] = {
+        name: chat.name,
+        chatId: chat.id._serialized,
+        owner: chat.owner.user,
+        createdAt: chat.createdAt.toString()
+      };
+      updateData(data);
 
-  //   console.log('[group_update] adding group to data', newGroup);
-
-  //   notification.reply('Obrigado por me adicionar.');
-  // }
+      console.log('[group_update] updating group data', data[key]);
+      break;
+    }
+  }
 });
 
 client.on('change_state', state => {
@@ -143,7 +148,90 @@ client.on('message', async message => {
   if (message.body === '!ping') {
     console.log('[message#ping] pong');
     message.reply('pong');
-    // client.sendMessage(message.from, 'pong');
+
+    return;
+  }
+
+  if (message.body.startsWith('!nome ')) {
+    console.log('[message#nome]');
+
+    let chat = await message.getChat();
+
+    if (chat.isGroup) {
+      let newSubject = message.body.slice(9);
+      chat.setSubject(newSubject);
+    } else {
+      message.reply('Esse comando só pode ser usado em um grupo!');
+    }
+
+    return;
+  }
+
+  if (message.body.startsWith('!desc ')) {
+    console.log('[message#desc]');
+
+    let chat = await message.getChat();
+
+    if (chat.isGroup) {
+      let newDescription = message.body.slice(6);
+      chat.setDescription(newDescription);
+    } else {
+      message.reply('Esse comando só pode ser usado em um grupo!');
+    }
+
+    return;
+  }
+
+  if (message.body === '!ajuda' || message.body === '!help' || message.body === '!comandos' || message.body === '!commands') {
+    console.log('[message#ajuda]');
+
+    message.reply(
+      '```Comandos```:' +
+      '\n\n*!ping* - Verifica se o BOT está online.' +
+      '\n_Exemplo_: ```!ping```' +
+      '\n\n*!info* - Retorna as informações do BOT.' +
+      '\n_Exemplo_: ```!info```' +
+      '\n\n*!nome* - Altera o nome do grupo.' +
+      '\n_Exemplo_: ```!nome Bora sair galera```' +
+      '\n\n*!desc* - Altera a descrição do grupo.' +
+      '\n_Exemplo_: ```!desc Vamos nos encontrar as 19h```' +
+      '\n\n*!ajuda* - Retorna os comandos disponíveis.' +
+      '\n_Exemplo_: ```!ajuda```'
+    );
+
+    return;
+  }
+
+  if (message.body === '!info') {
+    console.log('[message#info]');
+
+    const chat = await message.getChat();
+
+    const chats = await client.getChats();
+
+    if (chat.isGroup) {
+      message.reply(
+        '```Informações```:' +
+        `\n\n- *Nome*: ${client.info.pushname}` +
+        `\n\n- *Número*: ${client.info.wid.user}` +
+        `\n\n- *Plataforma*: ${client.info.platform}` +
+        `\n\n- *Conversas*: ${chats.length}` +
+        '\n\n```Informações do Grupo```:' +
+        `\n\n- *Nome*: ${chat.name}` +
+        `\n\n- *Descrição*: ${chat.description}` +
+        `\n\n- *Data de Criação*: ${chat.createdAt.toString()}` +
+        `\n\n- *Criado por*: ${chat.owner.user}` +
+        `\n\n- *Número de Participantes*: ${chat.participants.length}`
+      );
+    } else {
+      message.reply(
+        '```Informações```:' +
+        `\n\n- *Nome*: ${client.info.pushname}` +
+        `\n\n- *Número*: ${client.info.wid.user}` +
+        `\n\n- *Plataforma*: ${client.info.platform}` +
+        `\n\n- *Conversas*: ${chats.length}`
+      );
+    }
 
     return;
   }
@@ -184,223 +272,6 @@ client.on('message', async message => {
   //   return;
 
   // }
-
-  if (message.body.startsWith('!subject ')) {
-    console.log('[message#subject]');
-
-    let chat = await message.getChat();
-
-    if (chat.isGroup) {
-      let newSubject = message.body.slice(9);
-      chat.setSubject(newSubject);
-    } else {
-      message.reply('This command can only be used in a group!');
-    }
-
-    return;
-  }
-
-  //! NOT USED
-  // if (message.body.startsWith('!echo ')) {
-  //   console.log('[message#echo]');
-
-  //   message.reply(message.body.slice(6));
-
-  //   return;
-  // }
-
-  if (message.body.startsWith('!desc ')) {
-    console.log('[message#desc]');
-
-    let chat = await message.getChat();
-
-    if (chat.isGroup) {
-      let newDescription = message.body.slice(6);
-      chat.setDescription(newDescription);
-    } else {
-      message.reply('This command can only be used in a group!');
-    }
-
-    return;
-  }
-
-  if (message.body === '!leave') {
-    console.log('[message#leave]');
-
-    let chat = await message.getChat();
-
-    if (chat.isGroup) {
-      chat.leave();
-    } else {
-      message.reply('This command can only be used in a group!');
-    }
-
-    return;
-  }
-
-  //! NOT USED
-  // if (message.body.startsWith('!join ')) {
-  //   console.log('[message#join]');
-
-  //   const inviteCode = message.body.split(' ')[1];
-
-  //   try {
-  //     await client.acceptInvite(inviteCode);
-  //     message.reply('Joined the group!');
-  //   } catch (e) {
-  //     message.reply('That invite code seems to be invalid.');
-  //   }
-
-  //   return;
-  // }
-
-  if (message.body === '!groupinfo') {
-    console.log('[message#groupinfo]');
-
-    let chat = await message.getChat();
-
-    if (chat.isGroup) {
-      message.reply(`
-                *Group Details*
-                Name: ${chat.name}
-                Description: ${chat.description}
-                Created At: ${chat.createdAt.toString()}
-                Created By: ${chat.owner.user}
-                Participant count: ${chat.participants.length}
-            `);
-    } else {
-      message.reply('This command can only be used in a group!');
-    }
-
-    return;
-  }
-
-  if (message.body === '!chats') {
-    console.log('[message#chats]');
-
-    const chats = await client.getChats();
-
-    client.sendMessage(message.from, `The bot has ${chats.length} chats open.`);
-
-    return;
-  }
-
-  if (message.body === '!info') {
-    console.log('[message#info]');
-
-    let info = client.info;
-    client.sendMessage(message.from, `
-            *Connection info*
-            User name: ${info.pushname}
-            My number: ${info.wid.user}
-            Platform: ${info.platform}
-        `);
-
-    return;
-  }
-
-  if (message.body === '!mediainfo' && message.hasMedia) {
-    console.log('[message#mediainfo]');
-
-    const attachmentData = await message.downloadMedia();
-
-    message.reply(`
-            *Media info*
-            MimeType: ${attachmentData.mimetype}
-            Filename: ${attachmentData.filename}
-            Data (length): ${attachmentData.data.length}
-        `);
-
-    return;
-  }
-
-  if (message.body === '!quoteinfo' && message.hasQuotedMsg) {
-    console.log('[message#quoteinfo]');
-
-    const quotedMsg = await message.getQuotedMessage();
-
-    quotedMsg.reply(`
-            ID: ${quotedMsg.id._serialized}
-            Type: ${quotedMsg.type}
-            Author: ${quotedMsg.author || quotedMsg.from}
-            Timestamp: ${quotedMsg.timestamp}
-            Has Media? ${quotedMsg.hasMedia}
-        `);
-
-    return;
-  }
-
-  if (message.body === '!resendmedia' && message.hasQuotedMsg) {
-    console.log('[message#resendmedia]');
-
-    const quotedMsg = await message.getQuotedMessage();
-
-    if (quotedMsg.hasMedia) {
-      const attachmentData = await quotedMsg.downloadMedia();
-
-      client.sendMessage(message.from, attachmentData, { caption: 'Here\'s your requested media.' });
-    }
-
-    return;
-  }
-
-  //! OUT OF ORDER
-  // if (message.body === '!location') {
-  //   console.log('[message#location]');
-
-  //   message.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
-
-  //   return;
-  // }
-
-  // if (message.location) {
-  //   console.log('[message.location]');
-
-  //   message.reply(message.location);
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body.startsWith('!status ')) {
-  //   console.log('[message#status]');
-
-  //   const newStatus = message.body.split(' ')[1];
-
-  //   await client.setStatus(newStatus);
-  //   message.reply(`Status was updated to *${newStatus}*`);
-
-  //   return;
-  // }
-
-  if (message.body === '!mention') {
-    console.log('[message#mention]');
-
-    const contact = await message.getContact();
-    const chat = await message.getChat();
-
-    chat.sendMessage(`Oi @${contact.number}!`, {
-      mentions: [contact]
-    });
-
-    return;
-  }
-
-  if (message.body === '!delete') {
-    console.log('[message#delete]');
-
-    if (message.hasQuotedMsg) {
-      const quotedMsg = await message.getQuotedMessage();
-
-      if (quotedMsg.fromMe) {
-        quotedMsg.delete(true);
-      } else {
-        message.reply('I can only delete my own messages');
-      }
-    }
-
-    return;
-  }
 
   //! NOT USED
   // if (message.body === '!pin') {
@@ -507,13 +378,162 @@ client.on('message', async message => {
   //   return;
   // }
 
-  if (message.body === '!reaction') {
-    console.log('[message#reaction]');
+  //! OUT OF ORDER
+  // if (message.body === '!location') {
+  //   console.log('[message#location]');
 
-    message.react('👍');
+  //   message.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
 
-    return;
-  }
+  //   return;
+  // }
+
+  // if (message.location) {
+  //   console.log('[message.location]');
+
+  //   message.reply(message.location);
+
+  //   return;
+  // }
+
+  //! NOT USED
+  // if (message.body.startsWith('!status ')) {
+  //   console.log('[message#status]');
+
+  //   const newStatus = message.body.split(' ')[1];
+
+  //   await client.setStatus(newStatus);
+  //   message.reply(`Status was updated to *${newStatus}*`);
+
+  //   return;
+  // }
+
+  //! NOT USED
+  // if (message.body.startsWith('!join ')) {
+  //   console.log('[message#join]');
+
+  //   const inviteCode = message.body.split(' ')[1];
+
+  //   try {
+  //     await client.acceptInvite(inviteCode);
+  //     message.reply('Joined the group!');
+  //   } catch (e) {
+  //     message.reply('That invite code seems to be invalid.');
+  //   }
+
+  //   return;
+  // }
+
+  //! NOT USED
+  // if (message.body.startsWith('!echo ')) {
+  //   console.log('[message#echo]');
+
+  //   message.reply(message.body.slice(6));
+
+  //   return;
+  // }
+
+  //! NOT USED
+  // if (message.body === '!leave') {
+  //   console.log('[message#leave]');
+
+  //   let chat = await message.getChat();
+
+  //   if (chat.isGroup) {
+  //     chat.leave();
+  //   } else {
+  //     message.reply('Esse comando só pode ser usado em um grupo!');
+  //   }
+
+  //   return;
+  // }
+
+  //! NOT USED
+  // if (message.body === '!reaction') {
+  //   console.log('[message#reaction]');
+
+  //   message.react('👍');
+
+  //   return;
+  // }
+
+  //! NOT USED
+  // if (message.body === '!mediainfo' && message.hasMedia) {
+  //   console.log('[message#mediainfo]');
+
+  //   const attachmentData = await message.downloadMedia();
+
+  //   message.reply(`
+  //           *Media info*
+  //           MimeType: ${attachmentData.mimetype}
+  //           Filename: ${attachmentData.filename}
+  //           Data (length): ${attachmentData.data.length}
+  //       `);
+
+  //   return;
+  // }
+
+  //! NOT USED
+  // if (message.body === '!quoteinfo' && message.hasQuotedMsg) {
+  //   console.log('[message#quoteinfo]');
+
+  //   const quotedMsg = await message.getQuotedMessage();
+
+  //   quotedMsg.reply(`
+  //           ID: ${quotedMsg.id._serialized}
+  //           Type: ${quotedMsg.type}
+  //           Author: ${quotedMsg.author || quotedMsg.from}
+  //           Timestamp: ${quotedMsg.timestamp}
+  //           Has Media? ${quotedMsg.hasMedia}
+  //       `);
+
+  //   return;
+  // }
+
+  //! NOT USED
+  // if (message.body === '!resendmedia' && message.hasQuotedMsg) {
+  //   console.log('[message#resendmedia]');
+
+  //   const quotedMsg = await message.getQuotedMessage();
+
+  //   if (quotedMsg.hasMedia) {
+  //     const attachmentData = await quotedMsg.downloadMedia();
+
+  //     client.sendMessage(message.from, attachmentData, { caption: 'Here\'s your requested media.' });
+  //   }
+
+  //   return;
+  // }
+
+  //! NOT USED
+  // if (message.body === '!mention') {
+  //   console.log('[message#mention]');
+
+  //   const contact = await message.getContact();
+  //   const chat = await message.getChat();
+
+  //   chat.sendMessage(`Oi @${contact.number}!`, {
+  //     mentions: [contact]
+  //   });
+
+  //   return;
+  // }
+
+  //! NOT USED
+  // if (message.body === '!delete') {
+  //   console.log('[message#delete]');
+
+  //   if (message.hasQuotedMsg) {
+  //     const quotedMsg = await message.getQuotedMessage();
+
+  //     if (quotedMsg.fromMe) {
+  //       quotedMsg.delete(true);
+  //     } else {
+  //       message.reply('I can only delete my own messages');
+  //     }
+  //   }
+
+  //   return;
+  // }
 });
 
 console.log('\n[bot] starting...');
