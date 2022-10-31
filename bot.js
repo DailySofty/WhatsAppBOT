@@ -76,7 +76,8 @@ client.on('group_join', async (notification) => {
         name: chat.name,
         chatId: chat.id._serialized,
         owner: chat.owner.user,
-        createdAt: chat.createdAt.toString()
+        createdAt: chat.createdAt.toString(),
+        isAdm: false
       }
 
       data.push(newGroup);
@@ -84,10 +85,7 @@ client.on('group_join', async (notification) => {
 
       console.log('[group_join] adding group to data', newGroup);
 
-      //TODO welcome message (group invite, commands and instructions)
-      // const invite = await chat.getInviteCode()
-      // notification.reply(`${invite}\nObrigado por me adicionar.`);
-      notification.reply('Obrigado por me adicionar.');
+      notification.reply('Muito obrigado por me adicionar!\n\nPara habilitar o serviço, me adicione como *Administrador* do grupo.');
     }
   } else {
     notification.reply('Alguem entrou.');
@@ -104,7 +102,8 @@ client.on('group_leave', (notification) => {
       if (value.chatId === notification.chatId) {
         console.log('[group_leave] removing group from data', value);
 
-        delete data[key]; //TODO remove from array (this is not working properly...leaves an empty object)
+        delete data[key];
+        data = data.filter(function (e) { return e });
         updateData(data);
         break;
       }
@@ -119,16 +118,43 @@ client.on('group_update', async (notification) => {
     if (value.chatId === notification.chatId) {
       const chat = await notification.getChat();
 
-      data[key] = {
-        name: chat.name,
-        chatId: chat.id._serialized,
-        owner: chat.owner.user,
-        createdAt: chat.createdAt.toString()
-      };
-      updateData(data);
+      for (const participant of chat.participants) {
+        if (participant.id._serialized == client.info.wid._serialized && participant.isAdmin) {
+          data[key] = {
+            name: chat.name,
+            chatId: chat.id._serialized,
+            owner: chat.owner.user,
+            createdAt: chat.createdAt.toString(),
+            isAdm: true
+          };
+          updateData(data);
 
-      console.log('[group_update] updating group data', data[key]);
-      break;
+          console.log('[group_update] updating group data', data[key]);
+
+          //TODO welcome message (group invite, commands and instructions)
+          const invite = await chat.getInviteCode();
+          console.log('[group_update] invite code', invite);
+          notification.reply(`https://chat.whatsapp.com/${invite}`);
+
+          return;
+        }
+        if (participant.id._serialized == client.info.wid._serialized && !participant.isAdmin) {
+          data[key] = {
+            name: chat.name,
+            chatId: chat.id._serialized,
+            owner: chat.owner.user,
+            createdAt: chat.createdAt.toString(),
+            isAdm: false
+          };
+          updateData(data);
+
+          console.log('[group_update] updating group data', data[key]);
+
+          notification.reply('Foi bom enquanto durou, mas eu preciso ser *Administrador* para continuar.');
+
+          return;
+        }
+      }
     }
   }
 });
@@ -241,15 +267,15 @@ client.on('message', async message => {
   //   console.log('[message#criargrupo] creating group...');
   //   console.log('[message#criargrupo] split', message.body.split(' '));
 
-  //   const name = message.body.split(' ')[2];
+  //   const name = message.body.split(' ')[1];
   //   console.log('[message#criargrupo] name', name);
 
-  //   const participants = [await client.getNumberId(message.body.split(' ')[1]), await client.getNumberId('0077422222222')];
+  //   const participants = [await client.getNumberId(message.body.split(' ')[2]), await client.getNumberId(message.body.split(' ')[3])];
   //   console.log('[message#criargrupo] participants', participants);
 
-  //   await client.createGroup(name, participants);
+  //   const group = await client.createGroup(name, participants);
 
-  //   console.log('[message#criargrupo] group created');
+  //   console.log('[message#criargrupo] group created', group);
 
   //   return;
   // }
