@@ -8,14 +8,14 @@ let data = [];
 
 fs.readFile('./data.json', 'utf8', (err, jsonString) => {
   if (err) {
-    console.log("[data] error reading file from disk:", err);
+    console.log('[data] error reading file from disk:', err);
     updateData(data);
 
     return;
   }
   try {
     data = JSON.parse(jsonString);
-    console.log("[data] data loaded from disk:", data);
+    console.log('[data] data loaded from disk:', data);
   } catch (err) {
     console.log('[data] error parsing JSON string:', err);
   }
@@ -46,7 +46,7 @@ client.on('loading_screen', (percent, message) => {
 });
 
 client.on('authenticated', (session) => {
-  console.log('[authenticated] client is authenticated!');
+  console.log('[authenticated] client is authenticated!', session);
 });
 
 client.on('auth_failure', error => {
@@ -61,7 +61,7 @@ client.on('group_join', async (notification) => {
   console.log('[group_join]', notification);
 
   let wasAdded = false;
-  for (const [key, value] of Object.entries(data)) {
+  for (const [, value] of Object.entries(data)) {
     if (value.chatId === notification.chatId) {
       wasAdded = true;
       break;
@@ -77,8 +77,13 @@ client.on('group_join', async (notification) => {
         chatId: chat.id._serialized,
         owner: chat.owner.user,
         createdAt: chat.createdAt.toString(),
-        isAdm: false
-      }
+        isAdm: false,
+        date: null,
+        schedule: null,
+        location: null,
+        guestArray: [],
+        remainingTime: null
+      };
 
       data.push(newGroup);
       updateData(data);
@@ -103,7 +108,7 @@ client.on('group_leave', (notification) => {
         console.log('[group_leave] removing group from data', value);
 
         delete data[key];
-        data = data.filter(function (e) { return e });
+        data = data.filter(function (e) { return e; });
         updateData(data);
         break;
       }
@@ -118,41 +123,39 @@ client.on('group_update', async (notification) => {
     if (value.chatId === notification.chatId) {
       const chat = await notification.getChat();
 
-      for (const participant of chat.participants) {
-        if (participant.id._serialized == client.info.wid._serialized && participant.isAdmin) {
-          data[key] = {
-            name: chat.name,
-            chatId: chat.id._serialized,
-            owner: chat.owner.user,
-            createdAt: chat.createdAt.toString(),
-            isAdm: true
-          };
-          updateData(data);
+      if (data[key]['name'] != chat.name) {
+        data[key]['name'] = chat.name;
+        updateData(data);
+      }
 
-          console.log('[group_update] updating group data', data[key]);
+      if (data[key]['isAdm'] == false) {
+        for (const participant of chat.participants) {
+          if (participant.id._serialized == client.info.wid._serialized && participant.isAdmin) {
+            data[key]['isAdm'] = true;
+            updateData(data);
 
-          //TODO welcome message (group invite, commands and instructions)
-          const invite = await chat.getInviteCode();
-          console.log('[group_update] invite code', invite);
-          notification.reply(`https://chat.whatsapp.com/${invite}`);
+            console.log('[group_update] updating group data', data[key]);
 
-          return;
+            //TODO welcome message (group invite, commands and instructions)
+            const invite = await chat.getInviteCode();
+            console.log('[group_update] invite code', invite);
+            notification.reply(`https://chat.whatsapp.com/${invite}`);
+
+            return;
+          }
         }
-        if (participant.id._serialized == client.info.wid._serialized && !participant.isAdmin) {
-          data[key] = {
-            name: chat.name,
-            chatId: chat.id._serialized,
-            owner: chat.owner.user,
-            createdAt: chat.createdAt.toString(),
-            isAdm: false
-          };
-          updateData(data);
+      } else {
+        for (const participant of chat.participants) {
+          if (participant.id._serialized == client.info.wid._serialized && !participant.isAdmin) {
+            data[key]['isAdm'] = false;
+            updateData(data);
 
-          console.log('[group_update] updating group data', data[key]);
+            console.log('[group_update] updating group data', data[key]);
 
-          notification.reply('Foi bom enquanto durou, mas eu preciso ser *Administrador* para continuar.');
+            notification.reply('Foi bom enquanto durou, mas eu preciso ser *Administrador* para continuar.');
 
-          return;
+            return;
+          }
         }
       }
     }
@@ -181,11 +184,22 @@ client.on('message', async message => {
   if (message.body.startsWith('!nome ')) {
     console.log('[message#nome]');
 
-    let chat = await message.getChat();
+    const chat = await message.getChat();
 
     if (chat.isGroup) {
-      let newSubject = message.body.slice(9);
-      chat.setSubject(newSubject);
+      const newName = message.body.slice(6);
+      console.log('[message#nome] newName', newName);
+
+      chat.setSubject(newName);
+
+      for (const [key, value] of Object.entries(data)) {
+        if (value.chatId === chat.id._serialized) {
+          data[key]['name'] = newName;
+          updateData(data);
+        }
+      }
+
+      message.reply('Nome atualizada com sucesso!');
     } else {
       message.reply('Esse comando só pode ser usado em um grupo!');
     }
@@ -196,13 +210,131 @@ client.on('message', async message => {
   if (message.body.startsWith('!desc ')) {
     console.log('[message#desc]');
 
-    let chat = await message.getChat();
+    const chat = await message.getChat();
 
     if (chat.isGroup) {
-      let newDescription = message.body.slice(6);
+      const newDescription = message.body.slice(6);
+      console.log('[message#desc] newDescription', newDescription);
+
       chat.setDescription(newDescription);
+
+      message.reply('Descrição atualizada com sucesso!');
     } else {
       message.reply('Esse comando só pode ser usado em um grupo!');
+    }
+
+    return;
+  }
+
+  if (message.body.startsWith('!data ')) {
+    console.log('[message#data]');
+
+    const chat = await message.getChat();
+
+    if (chat.isGroup) {
+      const newDate = message.body.slice(6);
+      console.log('[message#data] newDate', newDate);
+
+      for (const [key, value] of Object.entries(data)) {
+        if (value.chatId === chat.id._serialized) {
+          data[key]['date'] = newDate;
+          updateData(data);
+
+          message.reply('Data atualizada com sucesso!');
+        }
+      }
+    } else {
+      message.reply('Esse comando só pode ser usado em um grupo!');
+    }
+
+    return;
+  }
+
+  if (message.body.startsWith('!hora ')) {
+    console.log('[message#hora]');
+
+    const chat = await message.getChat();
+
+    if (chat.isGroup) {
+      const newSchedule = message.body.slice(6);
+      console.log('[message#hora] newSchedule', newSchedule);
+
+      for (const [key, value] of Object.entries(data)) {
+        if (value.chatId === chat.id._serialized) {
+          data[key]['schedule'] = newSchedule;
+          updateData(data);
+
+          message.reply('Hora atualizada com sucesso!');
+        }
+      }
+    } else {
+      message.reply('Esse comando só pode ser usado em um grupo!');
+    }
+
+    return;
+  }
+
+  if (message.body.startsWith('!local ')) {
+    console.log('[message#local]');
+
+    const chat = await message.getChat();
+
+    if (chat.isGroup) {
+      const newLocation = message.body.slice(7);
+      console.log('[message#local] newLocation', newLocation);
+
+      for (const [key, value] of Object.entries(data)) {
+        if (value.chatId === chat.id._serialized) {
+          data[key]['location'] = newLocation;
+          updateData(data);
+
+          message.reply('Local atualizado com sucesso!');
+        }
+      }
+    } else {
+      message.reply('Esse comando só pode ser usado em um grupo!');
+    }
+
+    return;
+  }
+
+  if (message.body === '!evento') {
+    console.log('[message#evento]');
+
+    const chat = await message.getChat();
+
+    if (chat.isGroup) {
+      for (const [key, value] of Object.entries(data)) {
+        if (value.chatId === chat.id._serialized) {
+          const name = data[key]['name'];
+          console.log('[message#evento] name', name);
+
+          const date = data[key]['date'];
+          console.log('[message#evento] date', date);
+
+          const schedule = data[key]['schedule'];
+          console.log('[message#evento] schedule', schedule);
+
+          const location = data[key]['location'];
+          console.log('[message#evento] location', location);
+
+          const guestArray = data[key]['guestArray'].length > 0 ? data[key]['guestArray'] : null;
+          console.log('[message#evento] guestArray', guestArray);
+
+          const remainingTime = data[key]['remainingTime'];
+          console.log('[message#evento] remainingTime', remainingTime);
+
+
+          message.reply(
+            `Detalhes do *${name}*:` +
+            `\n\n- \`\`\`Data\`\`\`: *${date}*` +
+            `\n\n- \`\`\`Hora\`\`\`: *${schedule}*` +
+            `\n\n- \`\`\`Local\`\`\`: *${location}*` +
+            `\n\n- \`\`\`Lista de convidados\`\`\`: *${guestArray}*` +
+            `\n\n- \`\`\`Faltam\`\`\`: *${remainingTime}*`
+          );
+        }
+      }
     }
 
     return;
