@@ -31,14 +31,50 @@ function updateData(newData) {
   });
 }
 
+const MSG_ADD = 'Muito obrigado por me adicionar!' +
+  '\n\nPara habilitar o serviço, me adicione como *Administrador* do grupo.';
+
+const MSG_LEAVE = 'Foi bom enquanto durou, mas eu preciso ser *Administrador* para continuar.';
+
+const MSG_WELCOME = '*Serviço habilitado!*' +
+  '\n\nAqui estão as estruções de como usar:' +
+  '\n\n*-* Gerencie os dados de seu evento (nome, descrição, data, hora, local)' +
+
+  '\n\n```Comandos```:' +
+  '\n\n*/ping* - Verifica se o BOT está online.' +
+  '\n_Exemplo_: ```/ping```' +
+  '\n\n*/info* - Retorna as informações do BOT.' +
+  '\n_Exemplo_: ```/info```' +
+  '\n\n*/nome* - Altera o nome do grupo.' +
+  '\n_Exemplo_: ```/nome Bora sair galera```' +
+  '\n\n*/desc* - Altera a descrição do grupo.' +
+  '\n_Exemplo_: ```/desc Vamos nos encontrar as 19h```' +
+  '\n\n*/ajuda* - Retorna os comandos disponíveis.' +
+  '\n_Exemplo_: ```/ajuda```' +
+  '\n\nSegue o link do convite do grupo, compartilhe com os convidados!';
+
+const MSG_HELP = '```Comandos```:' +
+  '\n\n*/ping* - Verifica se o BOT está online.' +
+  '\n_Exemplo_: ```/ping```' +
+  '\n\n*/info* - Retorna as informações do BOT.' +
+  '\n_Exemplo_: ```/info```' +
+  '\n\n*/nome* - Altera o nome do grupo.' +
+  '\n_Exemplo_: ```/nome Bora sair galera```' +
+  '\n\n*/desc* - Altera a descrição do grupo.' +
+  '\n_Exemplo_: ```/desc Vamos nos encontrar as 19h```' +
+  '\n\n*/ajuda* - Retorna os comandos disponíveis.' +
+  '\n_Exemplo_: ```/ajuda```';
+
 const client = new Client({
   authStrategy: new LocalAuth(),
-  puppeteer: { headless: true }
+  puppeteer: { headless: process.argv[2] == '--show' ? false : true },
 });
 
 client.on('qr', qr => {
   console.log('[qr] generating...');
   qrcode.generate(qr, { small: true });
+
+  updateData([]);
 });
 
 client.on('loading_screen', (percent, message) => {
@@ -90,7 +126,7 @@ client.on('group_join', async (notification) => {
 
       console.log('[group_join] adding group to data', newGroup);
 
-      notification.reply('Muito obrigado por me adicionar!\n\nPara habilitar o serviço, me adicione como *Administrador* do grupo.');
+      notification.reply(MSG_ADD);
     }
   } else {
     notification.reply('Alguem entrou.');
@@ -136,10 +172,10 @@ client.on('group_update', async (notification) => {
 
             console.log('[group_update] updating group data', data[key]);
 
-            //TODO welcome message (group invite, commands and instructions)
             const invite = await chat.getInviteCode();
             console.log('[group_update] invite code', invite);
-            notification.reply(`https://chat.whatsapp.com/${invite}`);
+            // notification.reply(`https://chat.whatsapp.com/${invite}`);
+            notification.reply(MSG_WELCOME.concat(`\n\nhttps://chat.whatsapp.com/${invite}`));
 
             return;
           }
@@ -152,7 +188,7 @@ client.on('group_update', async (notification) => {
 
             console.log('[group_update] updating group data', data[key]);
 
-            notification.reply('Foi bom enquanto durou, mas eu preciso ser *Administrador* para continuar.');
+            notification.reply(MSG_LEAVE);
 
             return;
           }
@@ -174,14 +210,14 @@ client.on('message', async message => {
   console.log('[message] received', message);
   console.log('[message] body = ', message.body);
 
-  if (message.body === '!ping') {
+  if (message.body === '/ping') {
     console.log('[message#ping] pong');
     message.reply('pong');
 
     return;
   }
 
-  if (message.body.startsWith('!nome ')) {
+  if (message.body.startsWith('/nome ')) {
     console.log('[message#nome]');
 
     const chat = await message.getChat();
@@ -207,7 +243,7 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body.startsWith('!desc ')) {
+  if (message.body.startsWith('/desc ')) {
     console.log('[message#desc]');
 
     const chat = await message.getChat();
@@ -226,7 +262,7 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body.startsWith('!data ')) {
+  if (message.body.startsWith('/data ')) {
     console.log('[message#data]');
 
     const chat = await message.getChat();
@@ -250,7 +286,7 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body.startsWith('!hora ')) {
+  if (message.body.startsWith('/hora ')) {
     console.log('[message#hora]');
 
     const chat = await message.getChat();
@@ -274,7 +310,7 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body.startsWith('!local ')) {
+  if (message.body.startsWith('/local ')) {
     console.log('[message#local]');
 
     const chat = await message.getChat();
@@ -298,7 +334,7 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body === '!evento') {
+  if (message.body === '/evento') {
     console.log('[message#evento]');
 
     const chat = await message.getChat();
@@ -340,27 +376,15 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body === '!ajuda' || message.body === '!help' || message.body === '!comandos' || message.body === '!commands') {
+  if (message.body === '/ajuda' || message.body === '/help' || message.body === '/comandos' || message.body === '/commands') {
     console.log('[message#ajuda]');
 
-    message.reply(
-      '```Comandos```:' +
-      '\n\n*!ping* - Verifica se o BOT está online.' +
-      '\n_Exemplo_: ```!ping```' +
-      '\n\n*!info* - Retorna as informações do BOT.' +
-      '\n_Exemplo_: ```!info```' +
-      '\n\n*!nome* - Altera o nome do grupo.' +
-      '\n_Exemplo_: ```!nome Bora sair galera```' +
-      '\n\n*!desc* - Altera a descrição do grupo.' +
-      '\n_Exemplo_: ```!desc Vamos nos encontrar as 19h```' +
-      '\n\n*!ajuda* - Retorna os comandos disponíveis.' +
-      '\n_Exemplo_: ```!ajuda```'
-    );
+    message.reply(MSG_HELP);
 
     return;
   }
 
-  if (message.body === '!info') {
+  if (message.body === '/info') {
     console.log('[message#info]');
 
     const chat = await message.getChat();
@@ -395,7 +419,7 @@ client.on('message', async message => {
   }
 
   //! OUT OF ORDER
-  // if (message.body.startsWith('!criargrupo ')) {
+  // if (message.body.startsWith('/criargrupo ')) {
   //   console.log('[message#criargrupo] creating group...');
   //   console.log('[message#criargrupo] split', message.body.split(' '));
 
@@ -413,7 +437,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body.startsWith('!sendto ')) {
+  // if (message.body.startsWith('/sendto ')) {
   //   console.log('[message#sendto]');
 
   //   let number = message.body.split(' ')[1];
@@ -432,7 +456,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!pin') {
+  // if (message.body === '/pin') {
   //   console.log('[message#pin]');
 
   //   const chat = await message.getChat();
@@ -443,7 +467,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!archive') {
+  // if (message.body === '/archive') {
   //   console.log('[message#archive]');
 
   //   const chat = await message.getChat();
@@ -454,7 +478,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!mute') {
+  // if (message.body === '/mute') {
   //   console.log('[message#mute]');
 
   //   const chat = await message.getChat();
@@ -468,7 +492,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!typing') {
+  // if (message.body === '/typing') {
   //   console.log('[message#typing]');
 
   //   const chat = await message.getChat();
@@ -479,7 +503,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!recording') {
+  // if (message.body === '/recording') {
   //   console.log('[message#recording]');
 
   //   const chat = await message.getChat();
@@ -490,7 +514,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!clearstate') {
+  // if (message.body === '/clearstate') {
   //   console.log('[message#clearstate]');
 
   //   const chat = await message.getChat();
@@ -501,7 +525,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!jumpto') {
+  // if (message.body === '/jumpto') {
   //   console.log('[message#jumpto]');
 
   //   if (message.hasQuotedMsg) {
@@ -514,7 +538,7 @@ client.on('message', async message => {
   // }
 
   //! OUT OF ORDER
-  // if (message.body === '!buttons') {
+  // if (message.body === '/buttons') {
   //   console.log('[message#buttons]');
 
   //   let button = new Buttons('Button body', [{ body: 'bt1' }, { body: 'bt2' }, { body: 'bt3' }], 'title', 'footer');
@@ -525,7 +549,7 @@ client.on('message', async message => {
   // }
 
   //! OUT OF ORDER
-  // if (message.body === '!list') {
+  // if (message.body === '/list') {
   //   console.log('[message#list]');
 
   //   let sections = [{ title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }];
@@ -537,7 +561,7 @@ client.on('message', async message => {
   // }
 
   //! OUT OF ORDER
-  // if (message.body === '!location') {
+  // if (message.body === '/location') {
   //   console.log('[message#location]');
 
   //   message.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
@@ -554,7 +578,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body.startsWith('!status ')) {
+  // if (message.body.startsWith('/status ')) {
   //   console.log('[message#status]');
 
   //   const newStatus = message.body.split(' ')[1];
@@ -566,7 +590,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body.startsWith('!join ')) {
+  // if (message.body.startsWith('/join ')) {
   //   console.log('[message#join]');
 
   //   const inviteCode = message.body.split(' ')[1];
@@ -582,7 +606,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body.startsWith('!echo ')) {
+  // if (message.body.startsWith('/echo ')) {
   //   console.log('[message#echo]');
 
   //   message.reply(message.body.slice(6));
@@ -591,7 +615,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!leave') {
+  // if (message.body === '/leave') {
   //   console.log('[message#leave]');
 
   //   let chat = await message.getChat();
@@ -606,7 +630,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!reaction') {
+  // if (message.body === '/reaction') {
   //   console.log('[message#reaction]');
 
   //   message.react('👍');
@@ -615,7 +639,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!mediainfo' && message.hasMedia) {
+  // if (message.body === '/mediainfo' && message.hasMedia) {
   //   console.log('[message#mediainfo]');
 
   //   const attachmentData = await message.downloadMedia();
@@ -631,7 +655,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!quoteinfo' && message.hasQuotedMsg) {
+  // if (message.body === '/quoteinfo' && message.hasQuotedMsg) {
   //   console.log('[message#quoteinfo]');
 
   //   const quotedMsg = await message.getQuotedMessage();
@@ -648,7 +672,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!resendmedia' && message.hasQuotedMsg) {
+  // if (message.body === '/resendmedia' && message.hasQuotedMsg) {
   //   console.log('[message#resendmedia]');
 
   //   const quotedMsg = await message.getQuotedMessage();
@@ -663,7 +687,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!mention') {
+  // if (message.body === '/mention') {
   //   console.log('[message#mention]');
 
   //   const contact = await message.getContact();
@@ -677,7 +701,7 @@ client.on('message', async message => {
   // }
 
   //! NOT USED
-  // if (message.body === '!delete') {
+  // if (message.body === '/delete') {
   //   console.log('[message#delete]');
 
   //   if (message.hasQuotedMsg) {
