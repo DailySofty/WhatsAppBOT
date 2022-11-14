@@ -61,6 +61,9 @@ const MSG_WELCOME = '🤖 *Serviço habilitado!*' +
   '\n\n*/evento* - Retorna com os dados do evento.' +
   '\n_Exemplo_: ```/evento```' +
 
+  '\n\n*/lista* - Retorna a lista de convidados detalhada.' +
+  '\n_Exemplo_: ```/lista```' +
+
   '\n\n*/nome* - Altera o nome do grupo.' +
   '\n_Exemplo_: ```/nome Bora sair galera```' +
 
@@ -90,6 +93,9 @@ const MSG_HELP = '💬 ```Comandos```:' +
 
   '\n\n*/evento* - Retorna com os dados do evento.' +
   '\n_Exemplo_: ```/evento```' +
+
+  '\n\n*/lista* - Retorna a lista de convidados detalhada.' +
+  '\n_Exemplo_: ```/lista```' +
 
   '\n\n*/nome* - Altera o nome do grupo.' +
   '\n_Exemplo_: ```/nome Bora sair galera```' +
@@ -374,7 +380,7 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body.startsWith('/lista ')) {
+  if (message.body === '/lista') {
     console.log('[message#lista]');
 
     const chat = await message.getChat();
