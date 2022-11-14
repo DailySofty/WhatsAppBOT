@@ -31,6 +31,11 @@ function updateData(newData) {
   });
 }
 
+var answer = window.prompt("Você prefere o bot pelo seu dispositivo movel ");
+
+location.replace("./home.html")
+
+
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: { headless: true }
