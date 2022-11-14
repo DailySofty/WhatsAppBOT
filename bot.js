@@ -33,39 +33,73 @@ function updateData(newData) {
   });
 }
 
-const MSG_ADD = 'Muito obrigado por me adicionar!' +
-  '\n\nPara habilitar o serviço, me adicione como *Administrador* do grupo.';
+const MSG_ADD = '🤗 Muito obrigado por me adicionar!' +
+  '\n\nPara habilitar o serviço, me adicione como ⭐️ *Administrador* do grupo.';
 
-const MSG_LEAVE = 'Foi bom enquanto durou, mas eu preciso ser *Administrador* para continuar.';
+const MSG_LEAVE = '😪 Foi bom enquanto durou, mas eu preciso ser ⭐️ *Administrador* para continuar.';
 
-const MSG_WELCOME = '*Serviço habilitado!*' +
-  '\n\nAqui estão as estruções de como usar:' +
+const MSG_WELCOME = '🤖 *Serviço habilitado!*' +
+  '\n\n❓ Aqui estão as instruções de como usar:' +
   '\n\n*-* Gerencie os dados de seu evento (nome, descrição, data, hora, local)' +
 
-  '\n\n```Comandos```:' +
+  '\n\n💬 ```Comandos```:' +
+
   '\n\n*/ping* - Verifica se o BOT está online.' +
   '\n_Exemplo_: ```/ping```' +
-  '\n\n*/info* - Retorna as informações do BOT.' +
-  '\n_Exemplo_: ```/info```' +
-  '\n\n*/nome* - Altera o nome do grupo.' +
-  '\n_Exemplo_: ```/nome Bora sair galera```' +
-  '\n\n*/desc* - Altera a descrição do grupo.' +
-  '\n_Exemplo_: ```/desc Vamos nos encontrar as 19h```' +
+
   '\n\n*/ajuda* - Retorna os comandos disponíveis.' +
   '\n_Exemplo_: ```/ajuda```' +
-  '\n\nSegue o link do convite do grupo, compartilhe com os convidados!';
 
-const MSG_HELP = '```Comandos```:' +
-  '\n\n*/ping* - Verifica se o BOT está online.' +
-  '\n_Exemplo_: ```/ping```' +
   '\n\n*/info* - Retorna as informações do BOT.' +
   '\n_Exemplo_: ```/info```' +
+
+  '\n\n*/evento* - Retorna com os dados do evento.' +
+  '\n_Exemplo_: ```/evento```' +
+
   '\n\n*/nome* - Altera o nome do grupo.' +
   '\n_Exemplo_: ```/nome Bora sair galera```' +
-  '\n\n*/desc* - Altera a descrição do grupo.' +
-  '\n_Exemplo_: ```/desc Vamos nos encontrar as 19h```' +
+
+  '\n\n*/descricao* - Altera a descrição do grupo.' +
+  '\n_Exemplo_: ```/descricao Vamos nos encontrar as 19h```' +
+
+  '\n\n*/data* - Altera a data do evento.' +
+  '\n_Exemplo_: ```/data 17/11/2022```' +
+
+  '\n\n*/hora* - Altera a hora do evento.' +
+  '\n_Exemplo_: ```/hora 19:10```' +
+
+  '\n\n*/local* - Altera o local do evento.' +
+  '\n_Exemplo_: ```/local Av. Fulaninho de Paula, 1337```' +
+
+  '\n\nSegue o link do convite do grupo, compartilhe com os convidados!';
+
+const MSG_HELP = '💬 ```Comandos```:' +
+  '\n\n*/ping* - Verifica se o BOT está online.' +
+  '\n_Exemplo_: ```/ping```' +
+
   '\n\n*/ajuda* - Retorna os comandos disponíveis.' +
-  '\n_Exemplo_: ```/ajuda```';
+  '\n_Exemplo_: ```/ajuda```' +
+
+  '\n\n*/info* - Retorna as informações do BOT.' +
+  '\n_Exemplo_: ```/info```' +
+
+  '\n\n*/evento* - Retorna com os dados do evento.' +
+  '\n_Exemplo_: ```/evento```' +
+
+  '\n\n*/nome* - Altera o nome do grupo.' +
+  '\n_Exemplo_: ```/nome Bora sair galera```' +
+
+  '\n\n*/descricao* - Altera a descrição do grupo.' +
+  '\n_Exemplo_: ```/descricao Vamos nos encontrar as 19h```' +
+
+  '\n\n*/data* - Altera a data do evento.' +
+  '\n_Exemplo_: ```/data 17/11/2022```' +
+
+  '\n\n*/hora* - Altera a hora do evento.' +
+  '\n_Exemplo_: ```/hora 19:10```' +
+
+  '\n\n*/local* - Altera o local do evento.' +
+  '\n_Exemplo_: ```/local Av. Fulaninho de Paula, 1337```';
 
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -120,6 +154,7 @@ client.on('group_join', async (notification) => {
         schedule: null,
         location: null,
         guestArray: [],
+        guestArray_compact: [],
         remainingTime: null
       };
 
@@ -130,8 +165,6 @@ client.on('group_join', async (notification) => {
 
       notification.reply(MSG_ADD);
     }
-  } else {
-    notification.reply('Alguem entrou.');
   }
 });
 
@@ -237,15 +270,15 @@ client.on('message', async message => {
         }
       }
 
-      message.reply('Nome atualizada com sucesso!');
+      message.reply('✅ Nome atualizada com sucesso!');
     } else {
-      message.reply('Esse comando só pode ser usado em um grupo!');
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
   }
 
-  if (message.body.startsWith('/desc ')) {
+  if (message.body.startsWith('/descricao ')) {
     console.log('[message#desc]');
 
     const chat = await message.getChat();
@@ -256,9 +289,9 @@ client.on('message', async message => {
 
       chat.setDescription(newDescription);
 
-      message.reply('Descrição atualizada com sucesso!');
+      message.reply('✅ Descrição atualizada com sucesso!');
     } else {
-      message.reply('Esse comando só pode ser usado em um grupo!');
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
@@ -278,11 +311,11 @@ client.on('message', async message => {
           data[key]['date'] = newDate;
           updateData(data);
 
-          message.reply('Data atualizada com sucesso!');
+          message.reply('✅ Data atualizada com sucesso!');
         }
       }
     } else {
-      message.reply('Esse comando só pode ser usado em um grupo!');
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
@@ -302,11 +335,11 @@ client.on('message', async message => {
           data[key]['schedule'] = newSchedule;
           updateData(data);
 
-          message.reply('Hora atualizada com sucesso!');
+          message.reply('✅ Hora atualizada com sucesso!');
         }
       }
     } else {
-      message.reply('Esse comando só pode ser usado em um grupo!');
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
@@ -326,11 +359,46 @@ client.on('message', async message => {
           data[key]['location'] = newLocation;
           updateData(data);
 
-          message.reply('Local atualizado com sucesso!');
+          message.reply('✅ Local atualizado com sucesso!');
         }
       }
     } else {
-      message.reply('Esse comando só pode ser usado em um grupo!');
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
+    }
+
+    return;
+  }
+
+  if (message.body.startsWith('/lista ')) {
+    console.log('[message#lista]');
+
+    const chat = await message.getChat();
+
+    if (chat.isGroup) {
+      for (const [key, value] of Object.entries(data)) {
+        if (value.chatId === chat.id._serialized) {
+          console.log('[message#lista] guestArray', data[key]['guestArray']);
+
+          let guestList = '```Lista de convidados```\n';
+
+          for (const guest of data[key]['guestArray']) {
+            console.log('[message#lista] guest', guest);
+
+            const contact = await client.getContactById(guest);
+            console.log('[message#lista] contact', contact);
+
+            if (guest.presence == true) {
+              guestList += `\n✔️ @${contact.id.user}`;
+            } else {
+              guestList += `\n❌ @${contact.id.user}`;
+            }
+          }
+
+          message.reply(guestList);
+        }
+      }
+    } else {
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
@@ -356,8 +424,8 @@ client.on('message', async message => {
           const location = data[key]['location'];
           console.log('[message#evento] location', location);
 
-          const guestArray = data[key]['guestArray'].length > 0 ? data[key]['guestArray'] : null;
-          console.log('[message#evento] guestArray', guestArray);
+          const guestArray_compact = data[key]['guestArray_compact'].length > 0 ? data[key]['guestArray_compact'] : null;
+          console.log('[message#evento] guestArray_compact', guestArray_compact);
 
           const remainingTime = data[key]['remainingTime'];
           console.log('[message#evento] remainingTime', remainingTime);
@@ -368,11 +436,13 @@ client.on('message', async message => {
             `\n\n- \`\`\`Data\`\`\`: *${date}*` +
             `\n\n- \`\`\`Hora\`\`\`: *${schedule}*` +
             `\n\n- \`\`\`Local\`\`\`: *${location}*` +
-            `\n\n- \`\`\`Lista de convidados\`\`\`: *${guestArray}*` +
+            `\n\n- \`\`\`Lista de convidados\`\`\`: *${guestArray_compact}*` + //TODO - Arrumar a lista de convidados || ✔️ SIM / ❌ NÃO / ❔ NÃO RESPONDEU
             `\n\n- \`\`\`Faltam\`\`\`: *${remainingTime}*`
           );
         }
       }
+    } else {
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
