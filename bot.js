@@ -33,12 +33,11 @@ function updateData(newData) {
   });
 }
 
-<<<<<<< HEAD
-var answer = window.prompt("Você prefere o bot pelo seu dispositivo movel ");
+//? @liltheu
+// var answer = window.prompt("Você prefere o bot pelo seu dispositivo movel ");
 
-location.replace("./home.html")
+// location.replace("./home.html")
 
-=======
 const MSG_ADD = '🤗 Muito obrigado por me adicionar!' +
   '\n\nPara habilitar o serviço, me adicione como ⭐️ *Administrador* do grupo.';
 
@@ -106,7 +105,6 @@ const MSG_HELP = '💬 ```Comandos```:' +
 
   '\n\n*/local* - Altera o local do evento.' +
   '\n_Exemplo_: ```/local Av. Fulaninho de Paula, 1337```';
->>>>>>> 8a78c416460a07261cd6a6ec783c0044ac5bc5c2
 
 const client = new Client({
   authStrategy: new LocalAuth(),
