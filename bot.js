@@ -4,6 +4,8 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 
 const fs = require('fs');
 
+const schedule = require('node-schedule');
+
 let data = [];
 
 fs.readFile('./data.json', 'utf8', (err, jsonString) => {
@@ -31,19 +33,91 @@ function updateData(newData) {
   });
 }
 
+<<<<<<< HEAD
 var answer = window.prompt("Você prefere o bot pelo seu dispositivo movel ");
 
 location.replace("./home.html")
 
+=======
+const MSG_ADD = '🤗 Muito obrigado por me adicionar!' +
+  '\n\nPara habilitar o serviço, me adicione como ⭐️ *Administrador* do grupo.';
+
+const MSG_LEAVE = '😪 Foi bom enquanto durou, mas eu preciso ser ⭐️ *Administrador* para continuar.';
+
+const MSG_WELCOME = '🤖 *Serviço habilitado!*' +
+  '\n\n❓ Aqui estão as instruções de como usar:' +
+  '\n\n*-* Gerencie os dados de seu evento (nome, descrição, data, hora, local)' +
+
+  '\n\n💬 ```Comandos```:' +
+
+  '\n\n*/ping* - Verifica se o BOT está online.' +
+  '\n_Exemplo_: ```/ping```' +
+
+  '\n\n*/ajuda* - Retorna os comandos disponíveis.' +
+  '\n_Exemplo_: ```/ajuda```' +
+
+  '\n\n*/info* - Retorna as informações do BOT.' +
+  '\n_Exemplo_: ```/info```' +
+
+  '\n\n*/evento* - Retorna com os dados do evento.' +
+  '\n_Exemplo_: ```/evento```' +
+
+  '\n\n*/nome* - Altera o nome do grupo.' +
+  '\n_Exemplo_: ```/nome Bora sair galera```' +
+
+  '\n\n*/descricao* - Altera a descrição do grupo.' +
+  '\n_Exemplo_: ```/descricao Vamos nos encontrar as 19h```' +
+
+  '\n\n*/data* - Altera a data do evento.' +
+  '\n_Exemplo_: ```/data 17/11/2022```' +
+
+  '\n\n*/hora* - Altera a hora do evento.' +
+  '\n_Exemplo_: ```/hora 19:10```' +
+
+  '\n\n*/local* - Altera o local do evento.' +
+  '\n_Exemplo_: ```/local Av. Fulaninho de Paula, 1337```' +
+
+  '\n\nSegue o link do convite do grupo, compartilhe com os convidados!';
+
+const MSG_HELP = '💬 ```Comandos```:' +
+  '\n\n*/ping* - Verifica se o BOT está online.' +
+  '\n_Exemplo_: ```/ping```' +
+
+  '\n\n*/ajuda* - Retorna os comandos disponíveis.' +
+  '\n_Exemplo_: ```/ajuda```' +
+
+  '\n\n*/info* - Retorna as informações do BOT.' +
+  '\n_Exemplo_: ```/info```' +
+
+  '\n\n*/evento* - Retorna com os dados do evento.' +
+  '\n_Exemplo_: ```/evento```' +
+
+  '\n\n*/nome* - Altera o nome do grupo.' +
+  '\n_Exemplo_: ```/nome Bora sair galera```' +
+
+  '\n\n*/descricao* - Altera a descrição do grupo.' +
+  '\n_Exemplo_: ```/descricao Vamos nos encontrar as 19h```' +
+
+  '\n\n*/data* - Altera a data do evento.' +
+  '\n_Exemplo_: ```/data 17/11/2022```' +
+
+  '\n\n*/hora* - Altera a hora do evento.' +
+  '\n_Exemplo_: ```/hora 19:10```' +
+
+  '\n\n*/local* - Altera o local do evento.' +
+  '\n_Exemplo_: ```/local Av. Fulaninho de Paula, 1337```';
+>>>>>>> 8a78c416460a07261cd6a6ec783c0044ac5bc5c2
 
 const client = new Client({
   authStrategy: new LocalAuth(),
-  puppeteer: { headless: true }
+  puppeteer: { headless: process.argv[2] == '--show' ? false : true },
 });
 
 client.on('qr', qr => {
   console.log('[qr] generating...');
   qrcode.generate(qr, { small: true });
+
+  updateData([]);
 });
 
 client.on('loading_screen', (percent, message) => {
@@ -87,6 +161,7 @@ client.on('group_join', async (notification) => {
         schedule: null,
         location: null,
         guestArray: [],
+        guestArray_compact: [],
         remainingTime: null
       };
 
@@ -95,10 +170,8 @@ client.on('group_join', async (notification) => {
 
       console.log('[group_join] adding group to data', newGroup);
 
-      notification.reply('Muito obrigado por me adicionar!\n\nPara habilitar o serviço, me adicione como *Administrador* do grupo.');
+      notification.reply(MSG_ADD);
     }
-  } else {
-    notification.reply('Alguem entrou.');
   }
 });
 
@@ -141,10 +214,10 @@ client.on('group_update', async (notification) => {
 
             console.log('[group_update] updating group data', data[key]);
 
-            //TODO welcome message (group invite, commands and instructions)
             const invite = await chat.getInviteCode();
             console.log('[group_update] invite code', invite);
-            notification.reply(`https://chat.whatsapp.com/${invite}`);
+            // notification.reply(`https://chat.whatsapp.com/${invite}`);
+            notification.reply(MSG_WELCOME.concat(`\n\nhttps://chat.whatsapp.com/${invite}`));
 
             return;
           }
@@ -157,7 +230,7 @@ client.on('group_update', async (notification) => {
 
             console.log('[group_update] updating group data', data[key]);
 
-            notification.reply('Foi bom enquanto durou, mas eu preciso ser *Administrador* para continuar.');
+            notification.reply(MSG_LEAVE);
 
             return;
           }
@@ -179,14 +252,14 @@ client.on('message', async message => {
   console.log('[message] received', message);
   console.log('[message] body = ', message.body);
 
-  if (message.body === '!ping') {
+  if (message.body === '/ping') {
     console.log('[message#ping] pong');
     message.reply('pong');
 
     return;
   }
 
-  if (message.body.startsWith('!nome ')) {
+  if (message.body.startsWith('/nome ')) {
     console.log('[message#nome]');
 
     const chat = await message.getChat();
@@ -204,15 +277,15 @@ client.on('message', async message => {
         }
       }
 
-      message.reply('Nome atualizada com sucesso!');
+      message.reply('✅ Nome atualizada com sucesso!');
     } else {
-      message.reply('Esse comando só pode ser usado em um grupo!');
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
   }
 
-  if (message.body.startsWith('!desc ')) {
+  if (message.body.startsWith('/descricao ')) {
     console.log('[message#desc]');
 
     const chat = await message.getChat();
@@ -223,15 +296,15 @@ client.on('message', async message => {
 
       chat.setDescription(newDescription);
 
-      message.reply('Descrição atualizada com sucesso!');
+      message.reply('✅ Descrição atualizada com sucesso!');
     } else {
-      message.reply('Esse comando só pode ser usado em um grupo!');
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
   }
 
-  if (message.body.startsWith('!data ')) {
+  if (message.body.startsWith('/data ')) {
     console.log('[message#data]');
 
     const chat = await message.getChat();
@@ -245,17 +318,17 @@ client.on('message', async message => {
           data[key]['date'] = newDate;
           updateData(data);
 
-          message.reply('Data atualizada com sucesso!');
+          message.reply('✅ Data atualizada com sucesso!');
         }
       }
     } else {
-      message.reply('Esse comando só pode ser usado em um grupo!');
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
   }
 
-  if (message.body.startsWith('!hora ')) {
+  if (message.body.startsWith('/hora ')) {
     console.log('[message#hora]');
 
     const chat = await message.getChat();
@@ -269,17 +342,17 @@ client.on('message', async message => {
           data[key]['schedule'] = newSchedule;
           updateData(data);
 
-          message.reply('Hora atualizada com sucesso!');
+          message.reply('✅ Hora atualizada com sucesso!');
         }
       }
     } else {
-      message.reply('Esse comando só pode ser usado em um grupo!');
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
   }
 
-  if (message.body.startsWith('!local ')) {
+  if (message.body.startsWith('/local ')) {
     console.log('[message#local]');
 
     const chat = await message.getChat();
@@ -293,17 +366,52 @@ client.on('message', async message => {
           data[key]['location'] = newLocation;
           updateData(data);
 
-          message.reply('Local atualizado com sucesso!');
+          message.reply('✅ Local atualizado com sucesso!');
         }
       }
     } else {
-      message.reply('Esse comando só pode ser usado em um grupo!');
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
   }
 
-  if (message.body === '!evento') {
+  if (message.body.startsWith('/lista ')) {
+    console.log('[message#lista]');
+
+    const chat = await message.getChat();
+
+    if (chat.isGroup) {
+      for (const [key, value] of Object.entries(data)) {
+        if (value.chatId === chat.id._serialized) {
+          console.log('[message#lista] guestArray', data[key]['guestArray']);
+
+          let guestList = '```Lista de convidados```\n';
+
+          for (const guest of data[key]['guestArray']) {
+            console.log('[message#lista] guest', guest);
+
+            const contact = await client.getContactById(guest);
+            console.log('[message#lista] contact', contact);
+
+            if (guest.presence == true) {
+              guestList += `\n✔️ @${contact.id.user}`;
+            } else {
+              guestList += `\n❌ @${contact.id.user}`;
+            }
+          }
+
+          message.reply(guestList);
+        }
+      }
+    } else {
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
+    }
+
+    return;
+  }
+
+  if (message.body === '/evento') {
     console.log('[message#evento]');
 
     const chat = await message.getChat();
@@ -323,8 +431,8 @@ client.on('message', async message => {
           const location = data[key]['location'];
           console.log('[message#evento] location', location);
 
-          const guestArray = data[key]['guestArray'].length > 0 ? data[key]['guestArray'] : null;
-          console.log('[message#evento] guestArray', guestArray);
+          const guestArray_compact = data[key]['guestArray_compact'].length > 0 ? data[key]['guestArray_compact'] : null;
+          console.log('[message#evento] guestArray_compact', guestArray_compact);
 
           const remainingTime = data[key]['remainingTime'];
           console.log('[message#evento] remainingTime', remainingTime);
@@ -335,37 +443,27 @@ client.on('message', async message => {
             `\n\n- \`\`\`Data\`\`\`: *${date}*` +
             `\n\n- \`\`\`Hora\`\`\`: *${schedule}*` +
             `\n\n- \`\`\`Local\`\`\`: *${location}*` +
-            `\n\n- \`\`\`Lista de convidados\`\`\`: *${guestArray}*` +
+            `\n\n- \`\`\`Lista de convidados\`\`\`: *${guestArray_compact}*` + //TODO - Arrumar a lista de convidados || ✔️ SIM / ❌ NÃO / ❔ NÃO RESPONDEU
             `\n\n- \`\`\`Faltam\`\`\`: *${remainingTime}*`
           );
         }
       }
+    } else {
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
     }
 
     return;
   }
 
-  if (message.body === '!ajuda' || message.body === '!help' || message.body === '!comandos' || message.body === '!commands') {
+  if (message.body === '/ajuda' || message.body === '/help' || message.body === '/comandos' || message.body === '/commands') {
     console.log('[message#ajuda]');
 
-    message.reply(
-      '```Comandos```:' +
-      '\n\n*!ping* - Verifica se o BOT está online.' +
-      '\n_Exemplo_: ```!ping```' +
-      '\n\n*!info* - Retorna as informações do BOT.' +
-      '\n_Exemplo_: ```!info```' +
-      '\n\n*!nome* - Altera o nome do grupo.' +
-      '\n_Exemplo_: ```!nome Bora sair galera```' +
-      '\n\n*!desc* - Altera a descrição do grupo.' +
-      '\n_Exemplo_: ```!desc Vamos nos encontrar as 19h```' +
-      '\n\n*!ajuda* - Retorna os comandos disponíveis.' +
-      '\n_Exemplo_: ```!ajuda```'
-    );
+    message.reply(MSG_HELP);
 
     return;
   }
 
-  if (message.body === '!info') {
+  if (message.body === '/info') {
     console.log('[message#info]');
 
     const chat = await message.getChat();
@@ -398,305 +496,6 @@ client.on('message', async message => {
 
     return;
   }
-
-  //! OUT OF ORDER
-  // if (message.body.startsWith('!criargrupo ')) {
-  //   console.log('[message#criargrupo] creating group...');
-  //   console.log('[message#criargrupo] split', message.body.split(' '));
-
-  //   const name = message.body.split(' ')[1];
-  //   console.log('[message#criargrupo] name', name);
-
-  //   const participants = [await client.getNumberId(message.body.split(' ')[2]), await client.getNumberId(message.body.split(' ')[3])];
-  //   console.log('[message#criargrupo] participants', participants);
-
-  //   const group = await client.createGroup(name, participants);
-
-  //   console.log('[message#criargrupo] group created', group);
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body.startsWith('!sendto ')) {
-  //   console.log('[message#sendto]');
-
-  //   let number = message.body.split(' ')[1];
-  //   let messageIndex = message.body.indexOf(number) + number.length;
-  //   let message = message.body.slice(messageIndex, message.body.length);
-
-  //   number = number.includes('@c.us') ? number : `${number}@c.us`;
-
-  //   let chat = await message.getChat();
-  //   chat.sendSeen();
-
-  //   client.sendMessage(number, message);
-
-  //   return;
-
-  // }
-
-  //! NOT USED
-  // if (message.body === '!pin') {
-  //   console.log('[message#pin]');
-
-  //   const chat = await message.getChat();
-
-  //   await chat.pin();
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!archive') {
-  //   console.log('[message#archive]');
-
-  //   const chat = await message.getChat();
-
-  //   await chat.archive();
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!mute') {
-  //   console.log('[message#mute]');
-
-  //   const chat = await message.getChat();
-
-  //   const unmuteDate = new Date();
-  //   unmuteDate.setSeconds(unmuteDate.getSeconds() + 20);
-
-  //   await chat.mute(unmuteDate);
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!typing') {
-  //   console.log('[message#typing]');
-
-  //   const chat = await message.getChat();
-
-  //   chat.sendStateTyping();
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!recording') {
-  //   console.log('[message#recording]');
-
-  //   const chat = await message.getChat();
-
-  //   chat.sendStateRecording();
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!clearstate') {
-  //   console.log('[message#clearstate]');
-
-  //   const chat = await message.getChat();
-
-  //   chat.clearState();
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!jumpto') {
-  //   console.log('[message#jumpto]');
-
-  //   if (message.hasQuotedMsg) {
-  //     const quotedMsg = await message.getQuotedMessage();
-
-  //     client.interface.openChatWindowAt(quotedMsg.id._serialized);
-  //   }
-
-  //   return;
-  // }
-
-  //! OUT OF ORDER
-  // if (message.body === '!buttons') {
-  //   console.log('[message#buttons]');
-
-  //   let button = new Buttons('Button body', [{ body: 'bt1' }, { body: 'bt2' }, { body: 'bt3' }], 'title', 'footer');
-
-  //   client.sendMessage(message.from, button);
-
-  //   return;
-  // }
-
-  //! OUT OF ORDER
-  // if (message.body === '!list') {
-  //   console.log('[message#list]');
-
-  //   let sections = [{ title: 'sectionTitle', rows: [{ title: 'ListItem1', description: 'desc' }, { title: 'ListItem2' }] }];
-  //   let list = new List('List body', 'btnText', sections, 'Title', 'footer');
-
-  //   client.sendMessage(message.from, list);
-
-  //   return;
-  // }
-
-  //! OUT OF ORDER
-  // if (message.body === '!location') {
-  //   console.log('[message#location]');
-
-  //   message.reply(new Location(37.422, -122.084, 'Googleplex\nGoogle Headquarters'));
-
-  //   return;
-  // }
-
-  // if (message.location) {
-  //   console.log('[message.location]');
-
-  //   message.reply(message.location);
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body.startsWith('!status ')) {
-  //   console.log('[message#status]');
-
-  //   const newStatus = message.body.split(' ')[1];
-
-  //   await client.setStatus(newStatus);
-  //   message.reply(`Status was updated to *${newStatus}*`);
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body.startsWith('!join ')) {
-  //   console.log('[message#join]');
-
-  //   const inviteCode = message.body.split(' ')[1];
-
-  //   try {
-  //     await client.acceptInvite(inviteCode);
-  //     message.reply('Joined the group!');
-  //   } catch (e) {
-  //     message.reply('That invite code seems to be invalid.');
-  //   }
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body.startsWith('!echo ')) {
-  //   console.log('[message#echo]');
-
-  //   message.reply(message.body.slice(6));
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!leave') {
-  //   console.log('[message#leave]');
-
-  //   let chat = await message.getChat();
-
-  //   if (chat.isGroup) {
-  //     chat.leave();
-  //   } else {
-  //     message.reply('Esse comando só pode ser usado em um grupo!');
-  //   }
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!reaction') {
-  //   console.log('[message#reaction]');
-
-  //   message.react('👍');
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!mediainfo' && message.hasMedia) {
-  //   console.log('[message#mediainfo]');
-
-  //   const attachmentData = await message.downloadMedia();
-
-  //   message.reply(`
-  //           *Media info*
-  //           MimeType: ${attachmentData.mimetype}
-  //           Filename: ${attachmentData.filename}
-  //           Data (length): ${attachmentData.data.length}
-  //       `);
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!quoteinfo' && message.hasQuotedMsg) {
-  //   console.log('[message#quoteinfo]');
-
-  //   const quotedMsg = await message.getQuotedMessage();
-
-  //   quotedMsg.reply(`
-  //           ID: ${quotedMsg.id._serialized}
-  //           Type: ${quotedMsg.type}
-  //           Author: ${quotedMsg.author || quotedMsg.from}
-  //           Timestamp: ${quotedMsg.timestamp}
-  //           Has Media? ${quotedMsg.hasMedia}
-  //       `);
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!resendmedia' && message.hasQuotedMsg) {
-  //   console.log('[message#resendmedia]');
-
-  //   const quotedMsg = await message.getQuotedMessage();
-
-  //   if (quotedMsg.hasMedia) {
-  //     const attachmentData = await quotedMsg.downloadMedia();
-
-  //     client.sendMessage(message.from, attachmentData, { caption: 'Here\'s your requested media.' });
-  //   }
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!mention') {
-  //   console.log('[message#mention]');
-
-  //   const contact = await message.getContact();
-  //   const chat = await message.getChat();
-
-  //   chat.sendMessage(`Oi @${contact.number}!`, {
-  //     mentions: [contact]
-  //   });
-
-  //   return;
-  // }
-
-  //! NOT USED
-  // if (message.body === '!delete') {
-  //   console.log('[message#delete]');
-
-  //   if (message.hasQuotedMsg) {
-  //     const quotedMsg = await message.getQuotedMessage();
-
-  //     if (quotedMsg.fromMe) {
-  //       quotedMsg.delete(true);
-  //     } else {
-  //       message.reply('I can only delete my own messages');
-  //     }
-  //   }
-
-  //   return;
-  // }
 });
 
 console.log('\n[bot] starting...');
@@ -710,3 +509,24 @@ function exit() {
   client.destroy();
   console.log('[bot] finished.');
 }
+
+//? Midnight [0 0 * * *]
+//? 5 Minutes [*/5 * * * *]
+schedule.scheduleJob('*/5 * * * *', () => {
+  console.log('[schedule] */5 * * * *');
+
+  const now = new Date();
+  console.log('[schedule] now', now);
+
+  // eslint-disable-next-line no-unused-vars
+  for (const [key, value] of Object.entries(data)) {
+    const date = new Date(value.date);
+    console.log('[schedule] date', date);
+
+    const remainingTime = Math.floor((date - now) / (1000 * 60 * 60 * 24));
+    console.log('[schedule] remainingTime', remainingTime);
+
+    // data[key]['remainingTime'] = remainingTime;
+    // updateData(data);
+  }
+});
