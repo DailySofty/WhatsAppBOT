@@ -4,8 +4,6 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 
 const fs = require('fs');
 
-const{ MessageMedia } = require('whatsapp-web.js');
-
 const schedule = require('node-schedule');
 
 let data = [];
@@ -368,17 +366,21 @@ client.on('message', async message => {
     return;
   }
 
-  if(message.body.startsWith('/imagem')){
+  if(message.body == '/imagem'){
+    console.log('[message#imagem]');
+
+    const chat = await message.getChat();
+
     const authorId = message.author;
     for(let participant of chat.participants) {
         if(participant.id._serialized === authorId && !participant.isAdmin) {
           if(!message.hasMedia()){
-            groupChat.setProfilePicture(message.MessageMedia())
+            chat.setProfilePicture(message.MessageMedia());
             message.reply('✅Imagem do grupo atualizada com sucesso !');
           }
         }else{
           message.reply('Você não é um administrador!');
-        };
+        }
   }
 }
 
