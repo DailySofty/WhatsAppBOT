@@ -176,8 +176,7 @@ client.on('group_join', async (notification) => {
         date: null,
         schedule: null,
         location: null,
-        guestArray: [],
-        remainingTime: null
+        guestArray: []
       };
 
       data.push(newGroup);
@@ -557,7 +556,7 @@ client.on('message', async message => {
 
           console.log('[message#evento] guestArray_compact', guestArray_compact);
 
-          const remainingTime = data[key]['remainingTime'];
+          const remainingTime = null;
           console.log('[message#evento] remainingTime', remainingTime);
 
           message.reply(
