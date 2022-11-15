@@ -33,12 +33,11 @@ function updateData(newData) {
   });
 }
 
-<<<<<<< HEAD
-var answer = window.prompt("Você prefere o bot pelo seu dispositivo movel ");
+//? @liltheu
+// var answer = window.prompt("Você prefere o bot pelo seu dispositivo movel ");
 
-location.replace("./home.html")
+// location.replace("./home.html")
 
-=======
 const MSG_ADD = '🤗 Muito obrigado por me adicionar!' +
   '\n\nPara habilitar o serviço, me adicione como ⭐️ *Administrador* do grupo.';
 
@@ -61,6 +60,9 @@ const MSG_WELCOME = '🤖 *Serviço habilitado!*' +
 
   '\n\n*/evento* - Retorna com os dados do evento.' +
   '\n_Exemplo_: ```/evento```' +
+
+  '\n\n*/lista* - Retorna a lista de convidados detalhada.' +
+  '\n_Exemplo_: ```/lista```' +
 
   '\n\n*/nome* - Altera o nome do grupo.' +
   '\n_Exemplo_: ```/nome Bora sair galera```' +
@@ -92,6 +94,9 @@ const MSG_HELP = '💬 ```Comandos```:' +
   '\n\n*/evento* - Retorna com os dados do evento.' +
   '\n_Exemplo_: ```/evento```' +
 
+  '\n\n*/lista* - Retorna a lista de convidados detalhada.' +
+  '\n_Exemplo_: ```/lista```' +
+
   '\n\n*/nome* - Altera o nome do grupo.' +
   '\n_Exemplo_: ```/nome Bora sair galera```' +
 
@@ -106,7 +111,6 @@ const MSG_HELP = '💬 ```Comandos```:' +
 
   '\n\n*/local* - Altera o local do evento.' +
   '\n_Exemplo_: ```/local Av. Fulaninho de Paula, 1337```';
->>>>>>> 8a78c416460a07261cd6a6ec783c0044ac5bc5c2
 
 const client = new Client({
   authStrategy: new LocalAuth(),
@@ -161,7 +165,6 @@ client.on('group_join', async (notification) => {
         schedule: null,
         location: null,
         guestArray: [],
-        guestArray_compact: [],
         remainingTime: null
       };
 
@@ -376,7 +379,7 @@ client.on('message', async message => {
     return;
   }
 
-  if (message.body.startsWith('/lista ')) {
+  if (message.body === '/lista') {
     console.log('[message#lista]');
 
     const chat = await message.getChat();
@@ -386,19 +389,24 @@ client.on('message', async message => {
         if (value.chatId === chat.id._serialized) {
           console.log('[message#lista] guestArray', data[key]['guestArray']);
 
-          let guestList = '```Lista de convidados```\n';
+          let guestList = '📝 ```Lista de convidados```:\n';
 
-          for (const guest of data[key]['guestArray']) {
+          for (const [, guest] of Object.entries(data[key]['guestArray'])) {
             console.log('[message#lista] guest', guest);
 
-            const contact = await client.getContactById(guest);
+            const contact = await client.getContactById(guest.user);
             console.log('[message#lista] contact', contact);
 
-            if (guest.presence == true) {
-              guestList += `\n✔️ @${contact.id.user}`;
-            } else {
-              guestList += `\n❌ @${contact.id.user}`;
-            }
+            if (guest.presence == true) { guestList += `\n✔️ ${contact.pushname} (${contact.id.user})`; }
+          }
+
+          for (const [, guest] of Object.entries(data[key]['guestArray'])) {
+            console.log('[message#lista] guest', guest);
+
+            const contact = await client.getContactById(guest.user);
+            console.log('[message#lista] contact', contact);
+
+            if (guest.presence == false) { guestList += `\n❌ ${contact.pushname} (${contact.id.user})`; }
           }
 
           message.reply(guestList);
@@ -409,6 +417,90 @@ client.on('message', async message => {
     }
 
     return;
+  }
+
+  if (message.body === '/sim') {
+    console.log('[message#sim]');
+
+    const chat = await message.getChat();
+
+    if (chat.isGroup) {
+      for (const [key, value] of Object.entries(data)) {
+        if (value.chatId === chat.id._serialized) {
+          console.log('[message#sim] guestArray', data[key]['guestArray']);
+
+          for (const [guest_key, guest] of Object.entries(data[key]['guestArray'])) {
+            console.log('[message#sim] guest', guest);
+
+            if (guest.user == message.author) {
+              data[key]['guestArray'][guest_key].presence = true;
+
+              updateData(data);
+              message.reply('✔️ Presença confirmada!');
+
+              console.log('[message#sim] edit guestArray', data[key]['guestArray']);
+              return;
+            }
+          }
+
+          data[key]['guestArray'].push({
+            user: message.author,
+            presence: true
+          });
+
+          updateData(data);
+          message.reply('✔️ Presença confirmada!');
+
+          console.log('[message#sim] push guestArray', data[key]['guestArray']);
+          return;
+        }
+      }
+    } else {
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
+      return;
+    }
+  }
+
+  if (message.body === '/nao') {
+    console.log('[message#nao]');
+
+    const chat = await message.getChat();
+
+    if (chat.isGroup) {
+      for (const [key, value] of Object.entries(data)) {
+        if (value.chatId === chat.id._serialized) {
+          console.log('[message#nao] guestArray', data[key]['guestArray']);
+
+          for (const [guest_key, guest] of Object.entries(data[key]['guestArray'])) {
+            console.log('[message#nao] guest', guest);
+
+            if (guest.user == message.author) {
+              data[key]['guestArray'][guest_key].presence = false;
+
+              updateData(data);
+              message.reply('❌ Ausência confirmada!');
+
+              console.log('[message#nao] edit guestArray', data[key]['guestArray']);
+              return;
+            }
+          }
+
+          data[key]['guestArray'].push({
+            user: message.author,
+            presence: false
+          });
+
+          updateData(data);
+          message.reply('❌ Ausência confirmada!');
+
+          console.log('[message#nao] push guestArray', data[key]['guestArray']);
+          return;
+        }
+      }
+    } else {
+      message.reply('🚫 Esse comando só pode ser usado em um grupo!');
+      return;
+    }
   }
 
   if (message.body === '/evento') {
@@ -431,19 +523,37 @@ client.on('message', async message => {
           const location = data[key]['location'];
           console.log('[message#evento] location', location);
 
-          const guestArray_compact = data[key]['guestArray_compact'].length > 0 ? data[key]['guestArray_compact'] : null;
+          let guestArray_compact;
+          if (data[key]['guestArray'].length > 0) {
+            console.log('[message#evento] guestArray', data[key]['guestArray']);
+
+            let presentCount = 0;
+            let absentCount = 0;
+            let noReplyCount = chat.participants.length - 1;
+
+            for (const [guest_key, guest] of Object.entries(data[key]['guestArray'])) {
+              console.log('[message#sim] guest', guest);
+
+              if (data[key]['guestArray'][guest_key].presence == true) { presentCount++; noReplyCount--; }
+              if (data[key]['guestArray'][guest_key].presence == false) { absentCount++; noReplyCount--; }
+            }
+
+            guestArray_compact =`✔️ ${presentCount} \`\`\`|\`\`\` ❌ ${absentCount} \`\`\`|\`\`\` ❔ ${noReplyCount}`;
+          } else {
+            guestArray_compact = null;
+          }
+
           console.log('[message#evento] guestArray_compact', guestArray_compact);
 
           const remainingTime = data[key]['remainingTime'];
           console.log('[message#evento] remainingTime', remainingTime);
-
 
           message.reply(
             `Detalhes do *${name}*:` +
             `\n\n- \`\`\`Data\`\`\`: *${date}*` +
             `\n\n- \`\`\`Hora\`\`\`: *${schedule}*` +
             `\n\n- \`\`\`Local\`\`\`: *${location}*` +
-            `\n\n- \`\`\`Lista de convidados\`\`\`: *${guestArray_compact}*` + //TODO - Arrumar a lista de convidados || ✔️ SIM / ❌ NÃO / ❔ NÃO RESPONDEU
+            `\n\n- \`\`\`Lista de convidados\`\`\`: *${guestArray_compact}*` +
             `\n\n- \`\`\`Faltam\`\`\`: *${remainingTime}*`
           );
         }
