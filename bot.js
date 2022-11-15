@@ -64,6 +64,12 @@ const MSG_WELCOME = '🤖 *Serviço habilitado!*' +
   '\n\n*/lista* - Retorna a lista de convidados detalhada.' +
   '\n_Exemplo_: ```/lista```' +
 
+  '\n\n*/sim* - Confirma a presença no evento.' +
+  '\n_Exemplo_: ```/sim```' +
+
+  '\n\n*/nao* - Confirma a ausência  no evento.' +
+  '\n_Exemplo_: ```/nao```' +
+
   '\n\n*/nome* - Altera o nome do grupo.' +
   '\n_Exemplo_: ```/nome Bora sair galera```' +
 
@@ -96,6 +102,12 @@ const MSG_HELP = '💬 ```Comandos```:' +
 
   '\n\n*/lista* - Retorna a lista de convidados detalhada.' +
   '\n_Exemplo_: ```/lista```' +
+
+  '\n\n*/sim* - Confirma a presença no evento.' +
+  '\n_Exemplo_: ```/sim```' +
+
+  '\n\n*/nao* - Confirma a ausência  no evento.' +
+  '\n_Exemplo_: ```/nao```' +
 
   '\n\n*/nome* - Altera o nome do grupo.' +
   '\n_Exemplo_: ```/nome Bora sair galera```' +
@@ -461,7 +473,7 @@ client.on('message', async message => {
     }
   }
 
-  if (message.body === '/nao') {
+  if (message.body === '/nao' || message.body === '/não') {
     console.log('[message#nao]');
 
     const chat = await message.getChat();
