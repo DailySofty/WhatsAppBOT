@@ -20,20 +20,23 @@
       
                       <form>
                         <p>Please login to your account</p>
-      
+                        <p>Registrar</p>
+                        <div id="alerta" class="alerta-vermelho hide " role="alert">
+                          Usuario não existe ou senha incorreta !
+                        </div>
                         <div class="form-outline mb-4">
-                          <input type="email" id="form2Example11" class="form-control"
+                          <input id="user-login" type="email" id="form2Example11" class="form-control"
                             placeholder="Phone number or email address" />
                           <label class="form-label" for="form2Example11">Username</label>
                         </div>
       
                         <div class="form-outline mb-4">
-                          <input type="password" id="form2Example22" class="form-control" />
+                          <input type="password" id="divPassword" class="form-control" />
                           <label class="form-label" for="form2Example22">Password</label>
                         </div>
       
                         <div class="text-center pt-1 mb-5 pb-1">
-                          <button class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="button">Log
+                          <button id="login" class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3" type="button">Log
                             in</button>
                           <a class="text-muted" href="#!">Forgot password?</a>
                         </div>
@@ -62,5 +65,7 @@
         </div>
       </section>
 </body>
-<script src="https://www.gstatic.com/firebasejs/8.4.2/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/4.3.0/firebase.js"></script>
+<script type="text/javascript" src="./crud2.js"></script>
+<script type="text/javascript"  src="./fireConfig.js"></script>
 </html>
