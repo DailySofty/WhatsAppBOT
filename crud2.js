@@ -7,7 +7,7 @@ senha = document.getElementById("password").value;
   console.log(usuario, senha);
 }
 
-document.getElementById("insert").onclick = function () {
+/**document.getElementById("insert").onclick = function () {
   readFom();
 
   firebase
@@ -22,8 +22,8 @@ document.getElementById("insert").onclick = function () {
   document.getElementById("password").value = "";
 
 };
-
-/**document.getElementById("login").onclick = function () {
+*/
+document.getElementById("login").onclick = function () {
   const userLogin = document.getElementById('user-login').value 
   console.log(userLogin)
   let login = false
@@ -37,10 +37,10 @@ document.getElementById("insert").onclick = function () {
       if(userVal){
         console.log(snap.val().usuario)
         if (snap.val().usuario == userLogin) {
-          const divPassword = document.getElementById('divPassword').value;
+          const divPassword = document.getElementById('divPassword').value
           if(snap.val().senha == divPassword){
             console.log("logou!")
-            login = true;
+            login = true
           }
         }
       }
@@ -48,7 +48,7 @@ document.getElementById("insert").onclick = function () {
 
 
   if(login == true) {
-    window.location.href = 'pimpolho.html';
+    window.location.href = 'buttons.html';
   }else{
     const divAlert = document.getElementById('alerta');
     divAlert.classList.remove("hide");
