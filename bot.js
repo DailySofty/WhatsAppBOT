@@ -33,7 +33,7 @@ function updateData(newData) {
   });
 }
 
-async function checkIfSenderIsAdmin(message, chat) {
+function checkIfSenderIsAdmin(message, chat) {
   if (chat.isGroup) {
     const authorId = message.author;
     for (const participant of chat.participants) {
@@ -335,7 +335,7 @@ client.on('message', async message => {
     const checkGroup = chat.isGroup;
     console.log('[message#nome] checkGroup', checkGroup);
 
-    const checkAdm = await checkIfSenderIsAdmin(message, message_chat);
+    const checkAdm = checkIfSenderIsAdmin(message, message_chat);
     console.log('[message#nome] checkAdm', checkAdm);
 
     if (checkGroup == false) {
@@ -372,7 +372,7 @@ client.on('message', async message => {
     const checkGroup = chat.isGroup;
     console.log('[message#descricao] checkGroup', checkGroup);
 
-    const checkAdm = await checkIfSenderIsAdmin(message, message_chat);
+    const checkAdm = checkIfSenderIsAdmin(message, message_chat);
     console.log('[message#descricao] checkAdm', checkAdm);
 
     if (checkGroup == false) {
@@ -407,7 +407,7 @@ client.on('message', async message => {
     const checkGroup = chat.isGroup;
     console.log('[message#data] checkGroup', checkGroup);
 
-    const checkAdm = await checkIfSenderIsAdmin(message, message_chat);
+    const checkAdm = checkIfSenderIsAdmin(message, message_chat);
     console.log('[message#data] checkAdm', checkAdm);
 
     if (checkGroup == false) {
@@ -443,7 +443,7 @@ client.on('message', async message => {
     const checkGroup = chat.isGroup;
     console.log('[message#hora] checkGroup', checkGroup);
 
-    const checkAdm = await checkIfSenderIsAdmin(message, message_chat);
+    const checkAdm = checkIfSenderIsAdmin(message, message_chat);
     console.log('[message#hora] checkAdm', checkAdm);
 
     if (checkGroup == false) {
@@ -479,7 +479,7 @@ client.on('message', async message => {
     const checkGroup = chat.isGroup;
     console.log('[message#local] checkGroup', checkGroup);
 
-    const checkAdm = await checkIfSenderIsAdmin(message, message_chat);
+    const checkAdm = checkIfSenderIsAdmin(message, message_chat);
     console.log('[message#local] checkAdm', checkAdm);
 
     if (checkGroup == false) {
