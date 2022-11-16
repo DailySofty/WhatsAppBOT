@@ -506,7 +506,7 @@ client.on('message', async message => {
     }
   }
 
-  //? 🔴 [ADM_GROUP]
+  //? 🔵 [ALL_GROUP]
   if (message.body === '/lista') {
     console.log('[message#lista]');
 
@@ -515,16 +515,8 @@ client.on('message', async message => {
     const checkGroup = chat.isGroup;
     console.log('[message#lista] checkGroup', checkGroup);
 
-    const checkAdm = await checkIfSenderIsAdmin(message, message_chat);
-    console.log('[message#lista] checkAdm', checkAdm);
-
     if (checkGroup == false) {
       message.reply('🚫 Esse comando só pode ser usado em um grupo!');
-      return;
-    }
-
-    if (checkAdm == false) {
-      message.reply('🚫 Esse comando só pode ser usado por um *Admnistrador*!');
       return;
     }
 
@@ -532,7 +524,13 @@ client.on('message', async message => {
       if (value.chatId === chat.id._serialized) {
         console.log('[message#lista] guestArray', data[key]['guestArray']);
 
-        let guestList = '📝 ```Lista de convidados```:\n';
+        console.log('[message#lista] chat.participants', chat.participants);
+
+        let presentCount = 0;
+        let absentCount = 0;
+        let noReplyCount = chat.participants.length - 1;
+
+        let guestList = '';
 
         for (const [, guest] of Object.entries(data[key]['guestArray'])) {
           console.log('[message#lista] guest', guest);
@@ -540,7 +538,7 @@ client.on('message', async message => {
           const contact = await client.getContactById(guest.user);
           console.log('[message#lista] contact', contact);
 
-          if (guest.presence == true) { guestList += `\n✔️ ${contact.pushname} (${contact.id.user})`; }
+          if (guest.presence == true) { guestList += `\n✔️ ${contact.pushname} (${contact.id.user})`; presentCount++; noReplyCount--; }
         }
 
         for (const [, guest] of Object.entries(data[key]['guestArray'])) {
@@ -549,10 +547,29 @@ client.on('message', async message => {
           const contact = await client.getContactById(guest.user);
           console.log('[message#lista] contact', contact);
 
-          if (guest.presence == false) { guestList += `\n❌ ${contact.pushname} (${contact.id.user})`; }
+          if (guest.presence == false) { guestList += `\n❌ ${contact.pushname} (${contact.id.user})`; absentCount++; noReplyCount--; }
         }
 
-        message.reply(guestList);
+        //TODO listar quem ainda não respondeu
+        // for (const participant of chat.participants) {
+        //   for (const [, guest] of Object.entries(data[key]['guestArray'])) {
+        //     console.log('[message#lista] guest', guest);
+
+        //     const contact = await client.getContactById(participant.id._serialized);
+        //     console.log('[message#lista] contact', contact);
+
+        //     if (guest.user == participant.id._serialized) { continue; }
+        //     else { guestList += `\n❔ ${contact.pushname} (${contact.id.user})`; }
+        //   }
+        // }
+
+        message.reply('📝 ```Lista de convidados```:\n' +
+          `\n✔️ *${presentCount}*` +
+          `\n❌ *${absentCount}*` +
+          `\n❔ *${noReplyCount}*` +
+          '\n\n```--------------------------------```' +
+          guestList
+        );
         return;
       }
     }
@@ -710,7 +727,7 @@ client.on('message', async message => {
 
         message.reply(
           `Detalhes do *${name}*:` +
-          `\n\n- \`\`\`Link\`\`\`: *${link}*` +
+          `\n\n- \`\`\`Link\`\`\`: *https://chat.whatsapp.com/${link}*` +
           `\n\n- \`\`\`Data\`\`\`: *${date}*` +
           `\n\n- \`\`\`Hora\`\`\`: *${schedule}*` +
           `\n\n- \`\`\`Local\`\`\`: *${location}*` +
@@ -724,12 +741,12 @@ client.on('message', async message => {
 
   //? 🔵 [ALL_GROUP]
   if (message.body === '/link') {
-    console.log('[message#nao]');
+    console.log('[message#link]');
 
     const chat = await message.getChat();
 
     const checkGroup = chat.isGroup;
-    console.log('[message#nao] checkGroup', checkGroup);
+    console.log('[message#link] checkGroup', checkGroup);
 
     if (checkGroup == false) {
       message.reply('🚫 Esse comando só pode ser usado em um grupo!');
@@ -739,56 +756,12 @@ client.on('message', async message => {
     for (const [key, value] of Object.entries(data)) {
       if (value.chatId === chat.id._serialized) {
         const name = data[key]['name'];
-        console.log('[message#evento] name', name);
+        console.log('[message#link] name', name);
 
         const link = data[key]['link'];
-        console.log('[message#evento] link', link);
+        console.log('[message#link] link', link);
 
-        const date = data[key]['date'];
-        console.log('[message#evento] date', date);
-
-        const schedule = data[key]['schedule'];
-        console.log('[message#evento] schedule', schedule);
-
-        const location = data[key]['location'];
-        console.log('[message#evento] location', location);
-
-        let guestArray_compact;
-        if (data[key]['guestArray'].length > 0) {
-          console.log('[message#evento] guestArray', data[key]['guestArray']);
-
-          let presentCount = 0;
-          let absentCount = 0;
-          let noReplyCount = chat.participants.length - 1;
-
-          for (const [guest_key, guest] of Object.entries(data[key]['guestArray'])) {
-            console.log('[message#sim] guest', guest);
-
-            if (data[key]['guestArray'][guest_key].presence == true) { presentCount++; noReplyCount--; }
-            if (data[key]['guestArray'][guest_key].presence == false) { absentCount++; noReplyCount--; }
-          }
-
-          guestArray_compact = `\n✔️ *${presentCount}*` +
-            `\n❌ *${absentCount}*` +
-            `\n❔ *${noReplyCount}*`;
-        } else {
-          guestArray_compact = `*${null}*`;
-        }
-
-        console.log('[message#evento] guestArray_compact', guestArray_compact);
-
-        const remainingTime = null;
-        console.log('[message#evento] remainingTime', remainingTime);
-
-        message.reply(
-          `Detalhes do *${name}*:` +
-          `\n\n- \`\`\`Link\`\`\`: *${link}*` +
-          `\n\n- \`\`\`Data\`\`\`: *${date}*` +
-          `\n\n- \`\`\`Hora\`\`\`: *${schedule}*` +
-          `\n\n- \`\`\`Local\`\`\`: *${location}*` +
-          `\n\n- \`\`\`Lista de convidados\`\`\`: ${guestArray_compact}` +
-          `\n\n- \`\`\`Faltam\`\`\`: *${remainingTime}*`
-        );
+        message.reply(`🌐 \`\`\`Evento:\`\`\` *${name}*\n\n*https://chat.whatsapp.com/${link}*`);
         return;
       }
     }
@@ -854,10 +827,10 @@ function exit() {
 //? Midnight [0 0 * * *]
 //? 5 Minutes [*/5 * * * *]
 schedule.scheduleJob('*/5 * * * *', () => {
-  console.log('[schedule] */5 * * * *');
+  console.log('\n[schedule] */5 * * * *');
 
   const now = new Date();
-  console.log('\n[schedule] now', now);
+  console.log('[schedule] now', now);
 
   // eslint-disable-next-line no-unused-vars
   for (const [key, value] of Object.entries(data)) {
