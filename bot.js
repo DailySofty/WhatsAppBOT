@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 const qrcode = require('qrcode-terminal');
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
@@ -44,6 +45,26 @@ function checkIfSenderIsAdmin(message, chat) {
   }
 
   return false;
+}
+
+// eslint-disable-next-line no-unused-vars
+function checkInput(type, input) {
+  switch (type) {
+    case 'date': //* DD/MM/YYYY
+      const dateRaw = input.split('/');
+      console.log('[checkInput] dateRaw', dateRaw);
+
+      return true;
+
+    case 'hour': //* HH:MM
+      const hourRaw = input.split(':');
+      console.log('[checkInput] hourRaw', hourRaw);
+
+      return true;
+
+    default:
+      return false;
+  }
 }
 
 //? @liltheu
@@ -300,7 +321,7 @@ client.on('message', async message => {
   const message_chat = await message.getChat();
 
   //? 🟢 [ALL]
-  if (message.body === '/ping') {
+  if (message.body == '/ping') {
     console.log('[message#ping] pong');
     message.reply('pong');
 
@@ -410,6 +431,9 @@ client.on('message', async message => {
     const checkAdm = checkIfSenderIsAdmin(message, message_chat);
     console.log('[message#data] checkAdm', checkAdm);
 
+    const checkInput = checkInput('date', message.body.slice(6));
+    console.log('[message#data] checkInput', checkInput);
+
     if (checkGroup == false) {
       message.reply('🚫 Esse comando só pode ser usado em um grupo!');
       return;
@@ -417,6 +441,13 @@ client.on('message', async message => {
 
     if (checkAdm == false) {
       message.reply('🚫 Esse comando só pode ser usado por um *Admnistrador*!');
+      return;
+    }
+
+    if (checkInput == false) {
+      message.reply('🚫 *Formato inválido!*' +
+        '\n_Exemplo_: ```/data 17/11/2022```'
+      );
       return;
     }
 
@@ -446,6 +477,9 @@ client.on('message', async message => {
     const checkAdm = checkIfSenderIsAdmin(message, message_chat);
     console.log('[message#hora] checkAdm', checkAdm);
 
+    const checkInput = checkInput('hour', message.body.slice(6));
+    console.log('[message#data] checkInput', checkInput);
+
     if (checkGroup == false) {
       message.reply('🚫 Esse comando só pode ser usado em um grupo!');
       return;
@@ -453,6 +487,13 @@ client.on('message', async message => {
 
     if (checkAdm == false) {
       message.reply('🚫 Esse comando só pode ser usado por um *Admnistrador*!');
+      return;
+    }
+
+    if (checkInput == false) {
+      message.reply('🚫 *Formato inválido!*' +
+        '\n_Exemplo_: ```/hora 19:10```'
+      );
       return;
     }
 
@@ -507,7 +548,7 @@ client.on('message', async message => {
   }
 
   //? 🔵 [ALL_GROUP]
-  if (message.body === '/lista') {
+  if (message.body == '/lista') {
     console.log('[message#lista]');
 
     const chat = await message.getChat();
@@ -576,7 +617,7 @@ client.on('message', async message => {
   }
 
   //? 🔵 [ALL_GROUP]
-  if (message.body === '/sim') {
+  if (message.body == '/sim') {
     console.log('[message#sim]');
 
     const chat = await message.getChat();
@@ -622,7 +663,7 @@ client.on('message', async message => {
   }
 
   //? 🔵 [ALL_GROUP]
-  if (message.body === '/nao' || message.body === '/não') {
+  if (message.body == '/nao' || message.body == '/não') {
     console.log('[message#nao]');
 
     const chat = await message.getChat();
@@ -668,7 +709,7 @@ client.on('message', async message => {
   }
 
   //? 🔵 [ALL_GROUP]
-  if (message.body === '/evento') {
+  if (message.body == '/evento') {
     console.log('[message#evento]');
 
     const chat = await message.getChat();
@@ -740,7 +781,7 @@ client.on('message', async message => {
   }
 
   //? 🔵 [ALL_GROUP]
-  if (message.body === '/link') {
+  if (message.body == '/link') {
     console.log('[message#link]');
 
     const chat = await message.getChat();
@@ -768,7 +809,7 @@ client.on('message', async message => {
   }
 
   //? 🟢 [ALL]
-  if (message.body === '/ajuda' || message.body === '/help' || message.body === '/comandos' || message.body === '/commands') {
+  if (message.body == '/ajuda' || message.body == '/help' || message.body == '/comandos' || message.body == '/commands') {
     console.log('[message#ajuda]');
 
     message.reply(MSG_HELP);
@@ -777,7 +818,7 @@ client.on('message', async message => {
   }
 
   //? 🟢 [ALL]
-  if (message.body === '/info') {
+  if (message.body == '/info') {
     console.log('[message#info]');
 
     const chat = await message.getChat();
