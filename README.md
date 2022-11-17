@@ -9,7 +9,7 @@ A manager for WhatsApp groups.
 
 <!-- https://img.shields.io/badge/<SUBJECT>-<STATUS>-<COLOR>.svg -->
 
-`temp` **Fix puppeteer evaluation script**:
+`temp` **Fix GroupMetadata module**:
 `WhatsAppBOT\node_modules\whatsapp-web.js\src\util\Injected.js:17`
 ```js
 window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.GroupMetadata
