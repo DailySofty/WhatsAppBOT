@@ -961,6 +961,7 @@ schedule.scheduleJob('*/1 * * * *', () => {
     const remainingTime = getRemainingTime(data[key]['date'], data[key]['schedule']);
     console.log(`[schedule] (${data[key]['name']}) remainingTime`, remainingTime);
 
+    if (remainingTime == 0) { notifyRemainingTime(data[key]['chatId'], `🎉 *Chegou a hora* para o *${data[key]['name']}*!`); }
     if (remainingTime == 59) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 hora* para o *${data[key]['name']}*!`); }
     if (remainingTime == 1439) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 dia* para o *${data[key]['name']}*!`); }
     if (remainingTime == 10079) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 semana* para o *${data[key]['name']}*!`); }
