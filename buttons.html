@@ -5,7 +5,7 @@
 <body style="height: 100%;">
 
   <section class="h-100 gradient-form" style="background-color: #eee;">
-    <div class="container py-5 h-100">
+    <div class="container py-5 ">
       <div class="row d-flex justify-content-center align-items-center h-100">
         <div class="col-xl-10">
           <div class="card rounded-3 text-black">
@@ -20,9 +20,14 @@
                   </div>
 
                   <div class="h-100 d-flex align-items-center justify-content-center">
-                    <button type="button" class="btn btn-success">Success</button>
+                    <button id="desktop" style="margin-right:20px;size: 10%;position:center;padding: 5px;margin-left: -10%" type="button" class="btn btn-dark"><img style="size: 10%;position:center;"src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAABmJLR0QA/wD/AP+gvaeTAAAA00lEQVRIie2WSw6CMBCGP4wncK9xxyV0L/FWJtyJtR6DHRiJiZxBN5LUPoQ+1Mb0TyZh+DPzFZopQNKr9sAZuFtGCxQ+4NYBOkTjAx6aBK+bOS0ngBI4anAJ5EKeA4dvgC9ABfTPqICrbZO5A3gFrIV8ASwd+ryVbh471MOim1DnDQ5SZ7vHPeYj8mbTKBvxh1VnUj7WT65TZPvEtaNnLd1enVBf83FCnTcY6Z7J/8jXqTZcB1M04xRMCRwdWJ7bjeBtNb63fvZ7WzjCG2DnA/4/PQB2637lEez9KwAAAABJRU5ErkJggg==">Usar bot no Desktop</button>
+                    <button style="margin-right:-10%;size: 10%;position:center;padding: 5px;" type="button" class="btn btn-success"><img style="size: 10%;position:center;"src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAABmJLR0QA/wD/AP+gvaeTAAAA00lEQVRIie2WSw6CMBCGP4wncK9xxyV0L/FWJtyJtR6DHRiJiZxBN5LUPoQ+1Mb0TyZh+DPzFZopQNKr9sAZuFtGCxQ+4NYBOkTjAx6aBK+bOS0ngBI4anAJ5EKeA4dvgC9ABfTPqICrbZO5A3gFrIV8ASwd+ryVbh471MOim1DnDQ5SZ7vHPeYj8mbTKBvxh1VnUj7WT65TZPvEtaNnLd1enVBf83FCnTcY6Z7J/8jXqTZcB1M04xRMCRwdWJ7bjeBtNb63fvZ7WzjCG2DnA/4/PQB2637lEez9KwAAAABJRU5ErkJggg==">Usar bot no Dispositivo Movel</button>
+                  </div>
+                  <div id = "loading-div"class="h-100 d-flex align-items-center justify-content-center hide">
+                    <h4 id="loading"class="mb-4"></h4>
                   </div>
                 </div>
+              </div>
               </div>
               <div class="col-lg-6 d-flex align-items-center gradient-custom-2">
                 <div class="text-white px-3 py-4 p-md-5 mx-md-4">
@@ -37,9 +42,19 @@
         </div>
       </div>
     </div>
+    <footer class="footer">
+      <div class="container">
+        <span class="text-muted">Place sticky footer content here.</span>
+      </div>
+    </footer>
   </section>
+  
 </body>
+
 <script src="https://www.gstatic.com/firebasejs/4.3.0/firebase.js"></script>
-<script type="text/javascript"  src="./bot.js"></script>
+<script   src="./bundle.js"></script>
+<script>
+
+</script>
 <script type="text/javascript"  src="./fireConfig.js"></script>
 </html>
