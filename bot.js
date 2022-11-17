@@ -858,7 +858,7 @@ client.on('message', async message => {
           `\n\n- \`\`\`Hora\`\`\`: *${schedule}*` +
           `\n\n- \`\`\`Local\`\`\`: *${location}*` +
           `\n\n- \`\`\`Lista de convidados\`\`\`: ${guestArray_compact}` +
-          `\n\n- \`\`\`Faltam\`\`\`: *${remainingTime != null ? (remainingTime / 60).toFixed(1).concat('h') : remainingTime}*`
+          `\n\n- \`\`\`Faltam\`\`\`: *${remainingTime != null ? (remainingTime / 60).toFixed(2).concat('h') : remainingTime}*`
         );
         return;
       }
