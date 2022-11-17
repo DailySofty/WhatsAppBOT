@@ -20,7 +20,9 @@ window.Store.GroupMetadata = window.mR.findModule('GroupMetadata')[0].default.Gr
     <summary>:green_circle: PTBR</summary>
     <br>
 
-_Descrição do projeto_
+### [Video Explicativo](https://youtu.be/Oa4EaOxyfTE)
+
+_Um gerenciador de grupos do WhatsApp._
         <details>
         <summary>Tópicos</summary>
 
@@ -51,18 +53,15 @@ Após feita a instalação do **Node**, basta executar o comando `npm i` dentro 
 Simplesmente execute o comando `node bot` e siga as instruções!
 
 ---
-### Como Usar
-
-TEXTO COMO USAR
-
----
 </details>
 
 <details>
     <summary>:large_blue_circle: ENG</summary>
     <br>
 
-_Project Description_
+### [Explanation Video (PTBR)](https://youtu.be/Oa4EaOxyfTE)
+
+_A manager for WhatsApp groups._
     <details>
     <summary>Topics</summary>
 
@@ -92,11 +91,7 @@ Após feita a instalação do **Node**, basta executar o comando `npm i` dentro 
 ### How to Run
 
 Simply run `node bot` and follow the instructions!
-
 ---
-### How to Use
-
-HOW TO USE TEXT
 </details>
 
 [forks]: https://img.shields.io/github/forks/DailySofty/WhatsAppBOT
