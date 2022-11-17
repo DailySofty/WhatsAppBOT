@@ -952,8 +952,8 @@ function exit() {
 
 //? Midnight [0 0 * * *]
 //? 5 Minutes [*/5 * * * *]
-schedule.scheduleJob('*/5 * * * *', () => {
-  console.log('\n[schedule] every 5 minutes');
+schedule.scheduleJob('*/1 * * * *', () => {
+  console.log('\n[schedule] every 1 minute');
 
   for (const [key, value] of Object.entries(data)) {
     console.log('[schedule] value', value);
