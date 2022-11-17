@@ -59,41 +59,47 @@ function checkDateInput(type, input) {
     case 'date': //* DD/MM/YYYY
       try {
         const dateRaw = input.split('/');
-        console.log('[checkDateInput] dateRaw', dateRaw);
+        // console.log('[checkDateInput] dateRaw', dateRaw);
 
         const day = dateRaw[0];
-        console.log('[checkDateInput] day', day);
+        // console.log('[checkDateInput] day', day);
 
         const month = dateRaw[1];
-        console.log('[checkDateInput] month', month);
+        // console.log('[checkDateInput] month', month);
 
         const year = dateRaw[2];
-        console.log('[checkDateInput] year', year);
+        // console.log('[checkDateInput] year', year);
 
         if (day.length != 2 || month.length != 2 || year.length != 4) { return false; }
 
+        console.log('[checkDateInput] return', true);
         return true;
       } catch (error) {
-        console.log('[checkDateInput] error', error);
+        // console.log('[checkDateInput] error', error);
+
+        console.log('[checkDateInput] return', false);
         return false;
       }
 
     case 'hour': //* HH:MM
       try {
         const hourRaw = input.split(':');
-        console.log('[checkDateInput] hourRaw', hourRaw);
+        // console.log('[checkDateInput] hourRaw', hourRaw);
 
         const hours = hourRaw[0];
-        console.log('[checkDateInput] hours', hours);
+        // console.log('[checkDateInput] hours', hours);
 
         const minutes = hourRaw[1];
-        console.log('[checkDateInput] minutes', minutes);
+        // console.log('[checkDateInput] minutes', minutes);
 
         if (hours.length != 2 || minutes.length != 2) { return false; }
 
+        console.log('[checkDateInput] return', true);
         return true;
       } catch (error) {
-        console.log('[checkDateInput] error', error);
+        // console.log('[checkDateInput] error', error);
+
+        console.log('[checkDateInput] return', false);
         return false;
       }
 
@@ -102,46 +108,49 @@ function checkDateInput(type, input) {
   }
 }
 
-function getRemainingHours(date, schedule) {
+function getRemainingTime(date, schedule) {
   if (checkDateInput('date', date) && checkDateInput('hour', schedule)) {
     const rawDate = date.split('/');
-    console.log('[getRemainingHours] rawDate', rawDate);
+    console.log('[getRemainingTime] rawDate', rawDate);
 
     const day = rawDate[0];
-    console.log('[getRemainingHours] day', day);
+    // console.log('[getRemainingTime] day', day);
 
     const month = rawDate[1];
-    console.log('[getRemainingHours] month', month);
+    // console.log('[getRemainingTime] month', month);
 
     const year = rawDate[2];
-    console.log('[getRemainingHours] year', year);
+    // console.log('[getRemainingTime] year', year);
 
     const rawHour = schedule.split(':');
-    console.log('[getRemainingHours] rawHour', rawHour);
+    console.log('[getRemainingTime] rawHour', rawHour);
 
     const hours = rawHour[0];
-    console.log('[getRemainingHours] hours', hours);
+    // console.log('[getRemainingTime] hours', hours);
 
     const minutes = rawHour[1];
-    console.log('[getRemainingHours] minutes', minutes);
+    // console.log('[getRemainingTime] minutes', minutes);
 
     const dateEvent = moment.parseZone(`${year}-${month}-${day}T${hours}:${minutes}:00-13:00`);
     const dateNow = moment().utcOffset('-13:00').add(10, 'hours');
-    const remainingHours = dateEvent.diff(dateNow, 'hours');
+    const remainingTime = dateEvent.diff(dateNow, 'minutes');
 
-    console.log('[getRemainingHours] dateEvent', dateEvent);
-    console.log('[getRemainingHours] dateNow', dateNow);
-    console.log('[getRemainingHours] remainingHours', remainingHours);
+    console.log('[getRemainingTime] dateEvent', dateEvent);
+    console.log('[getRemainingTime] dateNow', dateNow);
+    console.log('[getRemainingTime] remainingTime', remainingTime);
 
-    return remainingHours;
+    return remainingTime;
   } else {
-    console.log('[getRemainingHours] invalid date or hour');
+    console.log('[getRemainingTime] invalid date or hour');
 
     return null;
   }
 }
 
 async function notifyRemainingTime(group_id, msg) {
+  console.log('[schedule] group_id', group_id);
+  console.log('[schedule] msg', msg);
+
   const chat = await client.getChatById(group_id);
   chat.sendMessage(msg);
 }
@@ -295,7 +304,7 @@ client.on('group_join', async (notification) => {
         owner: chat.owner.user,
         createdAt: chat.createdAt.toString(),
         isAdm: false,
-        remainingHours: null,
+        remainingTime: null,
         link: null,
         date: null,
         schedule: null,
@@ -837,10 +846,10 @@ client.on('message', async message => {
 
         console.log('[message#evento] guestArray_compact', guestArray_compact);
 
-        data[key]['remainingHours'] = getRemainingHours(date, schedule);
+        data[key]['remainingTime'] = getRemainingTime(date, schedule);
 
-        const remainingHours = data[key]['remainingHours'];
-        console.log('[message#evento] remainingHours', remainingHours);
+        const remainingTime = data[key]['remainingTime'];
+        console.log('[message#evento] remainingTime', remainingTime);
 
         message.reply(
           `Detalhes do *${name}*:` +
@@ -849,7 +858,7 @@ client.on('message', async message => {
           `\n\n- \`\`\`Hora\`\`\`: *${schedule}*` +
           `\n\n- \`\`\`Local\`\`\`: *${location}*` +
           `\n\n- \`\`\`Lista de convidados\`\`\`: ${guestArray_compact}` +
-          `\n\n- \`\`\`Faltam\`\`\`: *${remainingHours != null ? remainingHours + 'h' : remainingHours}*`
+          `\n\n- \`\`\`Faltam\`\`\`: *${remainingTime != null ? (remainingTime / 60).toFixed(1).concat('h') : remainingTime}*`
         );
         return;
       }
@@ -949,11 +958,11 @@ schedule.scheduleJob('*/5 * * * *', () => {
   for (const [key, value] of Object.entries(data)) {
     console.log('[schedule] value', value);
 
-    const remainingHours = getRemainingHours(data[key]['date'], data[key]['schedule']);
-    console.log(`[schedule] (${data[key]['name']}) remainingHours`, remainingHours);
+    const remainingTime = getRemainingTime(data[key]['date'], data[key]['schedule']);
+    console.log(`[schedule] (${data[key]['name']}) remainingTime`, remainingTime);
 
-    if (remainingHours == 1) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 hora* para o *${data[key]['name']}*!`); }
-    if (remainingHours == 24) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 dia* para o *${data[key]['name']}*!`); }
-    if (remainingHours == 168) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 semana* para o *${data[key]['name']}*!`); }
+    if (remainingTime == 60) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 hora* para o *${data[key]['name']}*!`); }
+    if (remainingTime == 60 * 24) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 dia* para o *${data[key]['name']}*!`); }
+    if (remainingTime == 60 * 24 * 7) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 semana* para o *${data[key]['name']}*!`); }
   }
 });
