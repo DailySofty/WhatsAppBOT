@@ -848,7 +848,21 @@ client.on('message', async message => {
 
         data[key]['remainingTime'] = getRemainingTime(date, schedule);
 
-        const remainingTime = data[key]['remainingTime'];
+        let rawRemainingTime = data[key]['remainingTime'];
+        console.log('[message#evento] rawRemainingTime', rawRemainingTime);
+
+        if (rawRemainingTime != null) {
+          const hours = (rawRemainingTime / 60).toFixed(0);
+          console.log('[message#evento] hours', hours);
+
+          if (hours == 0) {
+            rawRemainingTime = rawRemainingTime.toString().concat('min');
+          } else {
+            rawRemainingTime = hours.concat('h');
+          }
+        }
+
+        const remainingTime = rawRemainingTime;
         console.log('[message#evento] remainingTime', remainingTime);
 
         message.reply(
@@ -858,7 +872,7 @@ client.on('message', async message => {
           `\n\n- \`\`\`Hora\`\`\`: *${schedule}*` +
           `\n\n- \`\`\`Local\`\`\`: *${location}*` +
           `\n\n- \`\`\`Lista de convidados\`\`\`: ${guestArray_compact}` +
-          `\n\n- \`\`\`Faltam\`\`\`: *${remainingTime != null ? (remainingTime / 60).toFixed(2).concat('h') : remainingTime}*`
+          `\n\n- \`\`\`Faltam\`\`\`: *${remainingTime}*`
         );
         return;
       }
