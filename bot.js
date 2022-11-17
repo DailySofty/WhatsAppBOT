@@ -1,11 +1,18 @@
-/* eslint-disable no-case-declarations */
 const qrcode = require('qrcode-terminal');
+
+const moment = require('moment-timezone');
+moment.tz.setDefault('America/Sao_Paulo');
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
 
 const fs = require('fs');
 
 const schedule = require('node-schedule');
+
+const client = new Client({
+  authStrategy: new LocalAuth(),
+  puppeteer: { headless: process.argv[2] == '--show' ? false : true },
+});
 
 let data = [];
 
@@ -47,24 +54,96 @@ function checkIfSenderIsAdmin(message, chat) {
   return false;
 }
 
-// eslint-disable-next-line no-unused-vars
-function checkInput(type, input) {
+function checkDateInput(type, input) {
   switch (type) {
     case 'date': //* DD/MM/YYYY
-      const dateRaw = input.split('/');
-      console.log('[checkInput] dateRaw', dateRaw);
+      try {
+        const dateRaw = input.split('/');
+        console.log('[checkDateInput] dateRaw', dateRaw);
 
-      return true;
+        const day = dateRaw[0];
+        console.log('[checkDateInput] day', day);
+
+        const month = dateRaw[1];
+        console.log('[checkDateInput] month', month);
+
+        const year = dateRaw[2];
+        console.log('[checkDateInput] year', year);
+
+        if (day.length != 2 || month.length != 2 || year.length != 4) { return false; }
+
+        return true;
+      } catch (error) {
+        console.log('[checkDateInput] error', error);
+        return false;
+      }
 
     case 'hour': //* HH:MM
-      const hourRaw = input.split(':');
-      console.log('[checkInput] hourRaw', hourRaw);
+      try {
+        const hourRaw = input.split(':');
+        console.log('[checkDateInput] hourRaw', hourRaw);
 
-      return true;
+        const hours = hourRaw[0];
+        console.log('[checkDateInput] hours', hours);
+
+        const minutes = hourRaw[1];
+        console.log('[checkDateInput] minutes', minutes);
+
+        if (hours.length != 2 || minutes.length != 2) { return false; }
+
+        return true;
+      } catch (error) {
+        console.log('[checkDateInput] error', error);
+        return false;
+      }
 
     default:
       return false;
   }
+}
+
+function getRemainingHours(date, schedule) {
+  if (checkDateInput('date', date) && checkDateInput('hour', schedule)) {
+    const rawDate = date.split('/');
+    console.log('[getRemainingHours] rawDate', rawDate);
+
+    const day = rawDate[0];
+    console.log('[getRemainingHours] day', day);
+
+    const month = rawDate[1];
+    console.log('[getRemainingHours] month', month);
+
+    const year = rawDate[2];
+    console.log('[getRemainingHours] year', year);
+
+    const rawHour = schedule.split(':');
+    console.log('[getRemainingHours] rawHour', rawHour);
+
+    const hours = rawHour[0];
+    console.log('[getRemainingHours] hours', hours);
+
+    const minutes = rawHour[1];
+    console.log('[getRemainingHours] minutes', minutes);
+
+    const dateEvent = moment.parseZone(`${year}-${month}-${day}T${hours}:${minutes}:00-13:00`);
+    const dateNow = moment().utcOffset('-13:00').add(10, 'hours');
+    const remainingHours = dateEvent.diff(dateNow, 'hours');
+
+    console.log('[getRemainingHours] dateEvent', dateEvent);
+    console.log('[getRemainingHours] dateNow', dateNow);
+    console.log('[getRemainingHours] remainingHours', remainingHours);
+
+    return remainingHours;
+  } else {
+    console.log('[getRemainingHours] invalid date or hour');
+
+    return null;
+  }
+}
+
+async function notifyRemainingTime(group_id, msg) {
+  const chat = await client.getChatById(group_id);
+  chat.sendMessage(msg);
 }
 
 //? @liltheu
@@ -172,11 +251,6 @@ const MSG_HELP = '💬 ```Comandos```:' +
   '\n\n🔴 */local* - Altera o local do evento.' +
   '\n_Exemplo_: ```/local Av. Fulaninho de Paula, 1337```';
 
-const client = new Client({
-  authStrategy: new LocalAuth(),
-  puppeteer: { headless: process.argv[2] == '--show' ? false : true },
-});
-
 client.on('qr', qr => {
   console.log('[qr] generating...');
   qrcode.generate(qr, { small: true });
@@ -221,6 +295,7 @@ client.on('group_join', async (notification) => {
         owner: chat.owner.user,
         createdAt: chat.createdAt.toString(),
         isAdm: false,
+        remainingHours: null,
         link: null,
         date: null,
         schedule: null,
@@ -272,15 +347,14 @@ client.on('group_update', async (notification) => {
       if (data[key]['isAdm'] == false) {
         for (const participant of chat.participants) {
           if (participant.id._serialized == client.info.wid._serialized && participant.isAdmin) {
-            data[key]['isAdm'] = true;
-            updateData(data);
-
-            console.log('[group_update] updating group data', data[key]);
-
             const invite = await chat.getInviteCode();
             console.log('[group_update] invite code', invite);
 
             data[key]['link'] = invite;
+            data[key]['isAdm'] = true;
+            updateData(data);
+
+            console.log('[group_update] updating group data', data[key]);
 
             // notification.reply(`https://chat.whatsapp.com/${invite}`);
             notification.reply(MSG_WELCOME.concat(`\n\n*https://chat.whatsapp.com/${invite}*`));
@@ -431,7 +505,7 @@ client.on('message', async message => {
     const checkAdm = checkIfSenderIsAdmin(message, message_chat);
     console.log('[message#data] checkAdm', checkAdm);
 
-    const checkInput = checkInput('date', message.body.slice(6));
+    const checkInput = checkDateInput('date', message.body.slice(6));
     console.log('[message#data] checkInput', checkInput);
 
     if (checkGroup == false) {
@@ -477,7 +551,7 @@ client.on('message', async message => {
     const checkAdm = checkIfSenderIsAdmin(message, message_chat);
     console.log('[message#hora] checkAdm', checkAdm);
 
-    const checkInput = checkInput('hour', message.body.slice(6));
+    const checkInput = checkDateInput('hour', message.body.slice(6));
     console.log('[message#data] checkInput', checkInput);
 
     if (checkGroup == false) {
@@ -763,8 +837,10 @@ client.on('message', async message => {
 
         console.log('[message#evento] guestArray_compact', guestArray_compact);
 
-        const remainingTime = null;
-        console.log('[message#evento] remainingTime', remainingTime);
+        data[key]['remainingHours'] = getRemainingHours(date, schedule);
+
+        const remainingHours = data[key]['remainingHours'];
+        console.log('[message#evento] remainingHours', remainingHours);
 
         message.reply(
           `Detalhes do *${name}*:` +
@@ -773,7 +849,7 @@ client.on('message', async message => {
           `\n\n- \`\`\`Hora\`\`\`: *${schedule}*` +
           `\n\n- \`\`\`Local\`\`\`: *${location}*` +
           `\n\n- \`\`\`Lista de convidados\`\`\`: ${guestArray_compact}` +
-          `\n\n- \`\`\`Faltam\`\`\`: *${remainingTime}*`
+          `\n\n- \`\`\`Faltam\`\`\`: *${remainingHours}h*`
         );
         return;
       }
@@ -868,20 +944,16 @@ function exit() {
 //? Midnight [0 0 * * *]
 //? 5 Minutes [*/5 * * * *]
 schedule.scheduleJob('*/5 * * * *', () => {
-  console.log('\n[schedule] */5 * * * *');
+  console.log('\n[schedule] every 5 minutes');
 
-  const now = new Date();
-  console.log('[schedule] now', now);
-
-  // eslint-disable-next-line no-unused-vars
   for (const [key, value] of Object.entries(data)) {
-    const date = new Date(value.date);
-    console.log('[schedule] date', date);
+    console.log('[schedule] value', value);
 
-    const remainingTime = Math.floor((date - now) / (1000 * 60 * 60 * 24));
-    console.log('[schedule] remainingTime', remainingTime);
+    const remainingHours = getRemainingHours(data[key]['date'], data[key]['schedule']);
+    console.log(`[schedule] (${data[key]['name']}) remainingHours`, remainingHours);
 
-    // data[key]['remainingTime'] = remainingTime;
-    // updateData(data);
+    if (remainingHours == 1 || remainingHours == 0) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 hora* para o *${data[key]['name']}*!`); }
+    if (remainingHours == 24) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 dia* para o *${data[key]['name']}*!`); }
+    if (remainingHours == 168) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 semana* para o *${data[key]['name']}*!`); }
   }
 });
