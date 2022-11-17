@@ -849,7 +849,7 @@ client.on('message', async message => {
           `\n\n- \`\`\`Hora\`\`\`: *${schedule}*` +
           `\n\n- \`\`\`Local\`\`\`: *${location}*` +
           `\n\n- \`\`\`Lista de convidados\`\`\`: ${guestArray_compact}` +
-          `\n\n- \`\`\`Faltam\`\`\`: *${remainingHours}h*`
+          `\n\n- \`\`\`Faltam\`\`\`: *${remainingHours != null ? remainingHours + 'h' : remainingHours}*`
         );
         return;
       }
@@ -952,7 +952,7 @@ schedule.scheduleJob('*/5 * * * *', () => {
     const remainingHours = getRemainingHours(data[key]['date'], data[key]['schedule']);
     console.log(`[schedule] (${data[key]['name']}) remainingHours`, remainingHours);
 
-    if (remainingHours == 1 || remainingHours == 0) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 hora* para o *${data[key]['name']}*!`); }
+    if (remainingHours == 1) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 hora* para o *${data[key]['name']}*!`); }
     if (remainingHours == 24) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 dia* para o *${data[key]['name']}*!`); }
     if (remainingHours == 168) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 semana* para o *${data[key]['name']}*!`); }
   }
