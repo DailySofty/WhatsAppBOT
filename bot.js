@@ -852,13 +852,13 @@ client.on('message', async message => {
         console.log('[message#evento] rawRemainingTime', rawRemainingTime);
 
         if (rawRemainingTime != null) {
-          const hours = (rawRemainingTime / 60).toFixed(0);
+          const hours = (rawRemainingTime / 60).toFixed(1);
           console.log('[message#evento] hours', hours);
 
-          if (hours == 0) {
+          if (hours < 1) {
             rawRemainingTime = rawRemainingTime.toString().concat('min');
           } else {
-            rawRemainingTime = hours.concat('h');
+            rawRemainingTime = parseInt(hours).toFixed(0).concat('h');
           }
         }
 
