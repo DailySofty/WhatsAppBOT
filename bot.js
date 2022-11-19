@@ -11,7 +11,10 @@ const schedule = require('node-schedule');
 
 const client = new Client({
   authStrategy: new LocalAuth(),
-  puppeteer: { headless: process.argv[2] == '--show' ? false : true },
+  puppeteer: {
+    headless: process.argv[2] == '--show' ? false : true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  }
 });
 
 let data = [];
