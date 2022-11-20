@@ -151,11 +151,27 @@ function getRemainingTime(date, schedule) {
 }
 
 async function notifyRemainingTime(group_id, msg) {
-  console.log('[schedule] group_id', group_id);
-  console.log('[schedule] msg', msg);
+  console.log('[notifyRemainingTime] group_id', group_id);
+  console.log('[notifyRemainingTime] msg', msg);
 
   const chat = await client.getChatById(group_id);
   chat.sendMessage(msg);
+}
+
+async function leaveAndDeleteGroup(group_id) {
+  console.log('[leaveAndDeleteGroup] group_id', group_id);
+
+  for (const [key, value] of Object.entries(data)) {
+    if (value.chatId === group_id) {
+      const chat = await client.getChatById(group_id);
+      await chat.leave();
+
+      delete data[key];
+      data = data.filter(function (e) { return e; });
+      updateData(data);
+      break;
+    }
+  }
 }
 
 //? @liltheu
@@ -542,11 +558,21 @@ client.on('message', async message => {
         const newDate = message.body.slice(6);
         console.log('[message#data] newDate', newDate);
 
-        data[key]['date'] = newDate;
-        updateData(data);
+        console.log(`[message#data] ${data[key]['name']}.schedule`, data[key]['schedule']);
 
-        message.reply('✅ Data atualizada com sucesso!');
-        return;
+        const remainingTime = getRemainingTime(newDate, data[key]['schedule'] == null ? '23:59' : data[key]['schedule']);
+        console.log(`[message#data] (${data[key]['name']}) remainingTime`, remainingTime);
+
+        if (remainingTime <= 0 && remainingTime != null) {
+          message.reply('🚫 A data só pode estar no futuro!');
+          return;
+        } else {
+          data[key]['date'] = newDate;
+          updateData(data);
+
+          message.reply('✅ Data atualizada com sucesso!');
+          return;
+        }
       }
     }
   }
@@ -588,11 +614,21 @@ client.on('message', async message => {
         const newSchedule = message.body.slice(6);
         console.log('[message#hora] newSchedule', newSchedule);
 
-        data[key]['schedule'] = newSchedule;
-        updateData(data);
+        console.log(`[message#hora] ${data[key]['name']}.date`, data[key]['date']);
 
-        message.reply('✅ Hora atualizada com sucesso!');
-        return;
+        const remainingTime = getRemainingTime(data[key]['date'], newSchedule);
+        console.log(`[message#hora] (${data[key]['name']}) remainingTime`, remainingTime);
+
+        if (remainingTime <= 0 && remainingTime != null) {
+          message.reply('🚫 O horário só pode estar no futuro!');
+          return;
+        } else {
+          data[key]['schedule'] = newSchedule;
+          updateData(data);
+
+          message.reply('✅ Hora atualizada com sucesso!');
+          return;
+        }
       }
     }
   }
@@ -985,7 +1021,7 @@ schedule.scheduleJob('*/1 * * * *', () => {
     const remainingTime = getRemainingTime(data[key]['date'], data[key]['schedule']);
     console.log(`[schedule] (${data[key]['name']}) remainingTime`, remainingTime);
 
-    if (remainingTime == -1) { notifyRemainingTime(data[key]['chatId'], `🎉 *Chegou a hora* para o *${data[key]['name']}*!`); }
+    if (remainingTime == -1) { notifyRemainingTime(data[key]['chatId'], `🎉 *Chegou a hora* para o *${data[key]['name']}*!\n\n🖤 *Muito obrigado por confiar no meu serviço, até a proxima!*`); leaveAndDeleteGroup(data[key]['chatId']); }
     if (remainingTime == 59) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 hora* para o *${data[key]['name']}*!`); }
     if (remainingTime == 1439) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 dia* para o *${data[key]['name']}*!`); }
     if (remainingTime == 10079) { notifyRemainingTime(data[key]['chatId'], `⏲️ Falta *1 semana* para o *${data[key]['name']}*!`); }
